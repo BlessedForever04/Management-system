@@ -6,10 +6,10 @@ class ContainerDesign extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(10),
+      margin: EdgeInsets.only(bottom: 5),
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       width: MediaQuery.sizeOf(context).width,
       decoration: BoxDecoration(
-        color: Colors.grey.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey.withValues(alpha: 0.4)),
       ),

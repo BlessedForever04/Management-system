@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managementt/admin/admin_dashboard.dart';
+import 'package:managementt/admin/employee_management_page.dart';
 import 'package:managementt/components/app_colors.dart';
 
 void main() {
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.light,
       ),
 
-      home: AdminDashboard(),
+      home: EmployeeManagementPage(),
     );
   }
 }

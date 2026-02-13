@@ -16,9 +16,7 @@ class AdminDashboard extends StatelessWidget {
             Image.asset("assets/images/chitale_logo.png", width: 80),
             Spacer(),
             InkWell(
-              onTap: () {
-                
-              },
+              onTap: () {},
               child: Container(
                 padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
@@ -42,25 +40,6 @@ class AdminDashboard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Row(
-                //   children: [
-                //     Image.asset("assets/images/chitale_logo.png", width: 80),
-                //     Spacer(),
-                //     Container(
-                //       padding: EdgeInsets.all(8),
-                //       decoration: BoxDecoration(
-                //         shape: BoxShape.circle,
-                //         color: Colors.blueGrey.withValues(alpha: 0.2),
-                //       ),
-                //       child: FaIcon(
-                //         FontAwesomeIcons.bars,
-                //         color: Colors.blueGrey,
-                //         size: 18,
-                //       ),
-                //     ),
-                //   ],
-                // ),
-                //const SizedBox(height: 10),
                 const Text(
                   "DashBoard",
                   style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
