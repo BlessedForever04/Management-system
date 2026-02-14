@@ -28,9 +28,33 @@ class EmployeeDetailsPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(member.email ?? ""),
-                      Text(member.role ?? ""),
-                      Text(member.email ?? ""),
+                      Text("Email : ${member.email ?? ""}"),
+                      Text("Role : ${member.role ?? ""}"),
+                      const SizedBox(height: 10),
+                      ContainerDesign(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Task",
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            member.tasks.isNotEmpty
+                                ? ListView.builder(
+                                    itemCount: member.tasks.length,
+                                    itemBuilder: (context, index) {
+                                      final task = member.tasks[index];
+                                      return ListTile(title: Text(task));
+                                    },
+                                  )
+                                : Text("No task for ${member.name}"),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
