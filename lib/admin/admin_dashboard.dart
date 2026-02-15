@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/get_instance/src/extension_instance.dart';
 import 'package:get/route_manager.dart';
 import 'package:get/state_manager.dart';
+import 'package:managementt/admin/add_task.dart';
 import 'package:managementt/admin/employee_management_page.dart';
 import 'package:managementt/components/project_card.dart';
 import 'package:managementt/components/container_design.dart';
+import 'package:managementt/controller/member_controller.dart';
+import 'package:managementt/controller/task_controller.dart';
 
 class AdminDashboard extends StatelessWidget {
-  const AdminDashboard({super.key});
+  AdminDashboard({super.key});
+  final TaskController taskController = Get.put(TaskController());
+  final MemberController memberController = Get.put(MemberController());
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +25,9 @@ class AdminDashboard extends StatelessWidget {
             Image.asset("assets/images/chitale_logo.png", width: 80),
             Spacer(),
             InkWell(
-              onTap: () {},
+              onTap: () {
+                Get.to(() => addTask());
+              },
               child: Container(
                 padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
