@@ -11,8 +11,8 @@ class addTask extends StatelessWidget {
   final priorityController = ''.obs;
   final memberController = ''.obs;
   final TextEditingController descriptionController = TextEditingController();
-  final TaskController taskController = Get.find<TaskController>();
-  final MemberController memberCtrl = Get.find<MemberController>();
+  final TaskController _taskController = Get.find<TaskController>();
+  final MemberController _memberController = Get.find<MemberController>();
 
   addTask({super.key});
 
@@ -82,7 +82,7 @@ class addTask extends StatelessWidget {
                       return DropdownMenu<String>(
                         width: MediaQuery.widthOf(context) * 0.5,
                         hintText: "Select Member",
-                        dropdownMenuEntries: memberCtrl.members
+                        dropdownMenuEntries: _memberController.members
                             .map(
                               (member) => DropdownMenuEntry<String>(
                                 value: member.id ?? "Unknown member",
@@ -100,11 +100,11 @@ class addTask extends StatelessWidget {
 
                 const SizedBox(height: 20),
                 Obx(() {
-                  return taskController.isLoading.value
+                  return _taskController.isLoading.value
                       ? const CircularProgressIndicator()
                       : AppButton(
                           text: "Add task",
-                          onPressed: () {
+                          onPressed: () async {
                             if (titleController.text.isEmpty ||
                                 descriptionController.text.isEmpty) {
                               Get.snackbar(
@@ -115,14 +115,16 @@ class addTask extends StatelessWidget {
                               );
                               return;
                             }
-                            taskController.addTask(
+                            await _taskController.addTask(
                               Task(
                                 title: titleController.text,
                                 description: descriptionController.text,
                                 priority: priorityController.value,
-                                owner: memberController.value,
+                                ownerId: memberController.value,
                               ),
                             );
+                            await _memberController.getMembers();
+                            Get.back();
                           },
                         );
                 }),

@@ -15,27 +15,34 @@ class TaskController extends GetxController {
     super.onInit();
   }
 
-  void addTask(Task task) async {
+  Future<void> addTask(Task task) async {
     isLoading.value = true;
     await _taskService.addTask(task);
     // getTaskByOwner(ownerId);
     isLoading.value = false;
   }
 
-  void updateTask(String id, Task newTask) async {
+  Future<void> updateTask(String id, Task newTask) async {
     isLoading.value = true;
     await _taskService.updateTask(id, newTask);
     // getTaskByOwner(ownerId);
     isLoading.value = false;
   }
 
-  void getTaskByOwner(String id) async {
+  Future<void> getTaskByOwner(String id) async {
     isLoading.value = true;
     tasks.value = await _taskService.getTaskByOwner(id);
     isLoading.value = false;
   }
 
-  void removeTask(String id) async {
+  Future<Task> getTaskById(String id) async {
+    isLoading.value = true;
+    Task task = await _taskService.getTaskById(id);
+    isLoading.value = false;
+    return task;
+  }
+
+  Future<void> removeTask(String id) async {
     await _taskService.deleteTask(id);
     // getTaskByOwner(ownerId);
   }

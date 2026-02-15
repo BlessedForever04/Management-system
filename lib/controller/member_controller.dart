@@ -20,7 +20,7 @@ class MemberController extends GetxController {
     isLoading.value = false;
   }
 
-  void getMembers() async {
+  Future<void> getMembers() async {
     isLoading.value = true;
     members.value = await _memberService.getMembers();
     isLoading.value = false;

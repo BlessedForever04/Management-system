@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managementt/components/container_design.dart';
+import 'package:managementt/controller/task_controller.dart';
 import 'package:managementt/model/member.dart';
 
 class EmployeeDetailsPage extends StatelessWidget {
@@ -47,8 +48,12 @@ class EmployeeDetailsPage extends StatelessWidget {
                                 ? ListView.builder(
                                     itemCount: member.tasks.length,
                                     itemBuilder: (context, index) {
-                                      final task = member.tasks[index];
-                                      return ListTile(title: Text(task));
+                                      final taskId = member.tasks[index];
+                                      // Here we have to fetch task so we can use task.title but idk how to get task from its id, we have taskId available and function is also created
+                                      // return ListTile(title: TaskController.getTaskById(task).title) //- this is not working, idk why
+                                      return ListTile(
+                                        title: Text(taskId),
+                                      ); // This is bugged, task is task's id (renamed task -> taskId)
                                     },
                                   )
                                 : Text("No task for ${member.name}"),

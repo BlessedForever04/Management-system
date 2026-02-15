@@ -4,7 +4,7 @@ class Task {
   String description;
   String? priority;
   String? status;
-  String owner;
+  String ownerId;
   String? remark;
   // have to add task priority too
 
@@ -14,7 +14,7 @@ class Task {
     required this.description,
     this.priority,
     this.status,
-    required this.owner,
+    required this.ownerId,
     this.remark,
   });
 
@@ -25,7 +25,7 @@ class Task {
       description: json['description'],
       priority: json['priority'],
       status: json['status'],
-      owner: json['owner'],
+      ownerId: json['ownerId'],
       remark: json['remark'],
     );
   }
@@ -37,7 +37,7 @@ class Task {
       "description": description,
       "priority": priority,
       "status": status,
-      "owner": owner,
+      "ownerId": ownerId,
       "remark": remark,
     };
   }
