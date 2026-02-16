@@ -22,7 +22,10 @@ class AdminDashboard extends StatelessWidget {
         backgroundColor: Colors.transparent,
         title: Row(
           children: [
-            Image.asset("assets/images/chitale_logo.png", width: 80),
+            const Text(
+              "DashBoard",
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+            ),
             Spacer(),
             InkWell(
               onTap: () {
@@ -51,12 +54,6 @@ class AdminDashboard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "DashBoard",
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-
                 ContainerDesign(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,15 +66,26 @@ class AdminDashboard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      ListView(
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        children: [
-                          ProjectCard(title: "ladddoo", status: "On schedule"),
-                          ProjectCard(title: "Boondi", status: "late"),
-                          ProjectCard(title: "Barfii"),
-                        ],
-                      ),
+                      Obx(() {
+                        if (taskController.isLoading.value) {
+                          return Center(child: CircularProgressIndicator());
+                        }
+                        if (taskController.tasks.isEmpty) {
+                          return Center(child: Text("No Tasks Found"));
+                        }
+                        return ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: taskController.tasks.length,
+                          itemBuilder: (context, index) {
+                            final project = taskController.tasks[index];
+                            return ProjectCard(
+                              title: project.title,
+                              status: project.status,
+                            );
+                          },
+                        );
+                      }),
                     ],
                   ),
                 ),

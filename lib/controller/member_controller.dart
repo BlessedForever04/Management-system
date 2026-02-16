@@ -6,7 +6,7 @@ class MemberController extends GetxController {
   final MemberService _memberService = MemberService();
   var members = <Member>[].obs;
   var isLoading = false.obs;
-
+  var tasks = <String>[].obs;
   @override
   void onInit() {
     getMembers();
