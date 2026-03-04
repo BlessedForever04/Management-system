@@ -1,109 +1,220 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:get/get_instance/src/extension_instance.dart';
-import 'package:get/route_manager.dart';
-import 'package:get/state_manager.dart';
-import 'package:managementt/admin/add_task.dart';
-import 'package:managementt/admin/employee_management_page.dart';
-import 'package:managementt/admin/task_detail_page.dart';
-import 'package:managementt/components/project_card.dart';
-import 'package:managementt/components/container_design.dart';
 import 'package:managementt/controller/member_controller.dart';
 import 'package:managementt/controller/task_controller.dart';
+import 'package:managementt/model/task.dart';
 
 class AdminDashboard extends StatelessWidget {
-  AdminDashboard({super.key});
-  final TaskController taskController = Get.put(TaskController());
-  final MemberController memberController = Get.put(MemberController());
+  const AdminDashboard({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        title: Row(
-          children: [
-            const Text(
-              "DashBoard",
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-            ),
-            Spacer(),
-            InkWell(
-              onTap: () {
-                Get.to(() => addTask());
-              },
-              child: Container(
-                padding: EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.blueGrey.withValues(alpha: 0.2),
-                ),
-                child: FaIcon(
-                  FontAwesomeIcons.plus,
-                  color: Colors.white,
-                  size: 18,
-                ),
-              ),
-            ),
-          ],
-        ),
+        toolbarHeight: 0,
+        backgroundColor: const Color.fromARGB(223, 57, 27, 255),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ContainerDesign(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Current Projects",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
+          child: Column(
+            children: [
+              Container(
+                height: 220,
+                padding: EdgeInsets.only(left: 20, right: 20, bottom: 20),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(223, 57, 27, 255),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Welcome back,",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
+                    Text(
+                      "Manthan Agrawal",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 25,
                       ),
-                      const SizedBox(height: 10),
-                      Obx(() {
-                        if (taskController.isLoading.value) {
-                          return Center(child: CircularProgressIndicator());
-                        }
-                        if (taskController.tasks.isEmpty) {
-                          return Center(child: Text("No Tasks Found"));
-                        }
-                        return ListView.builder(
-                          shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
-                          itemCount: taskController.tasks.length,
-                          itemBuilder: (context, index) {
-                            final project = taskController.tasks[index];
-                            return ProjectCard(
-                              title: project.title,
-                              status: project.status,
-                              onTap: () => Get.to(
-                                () => TaskDetailPage(),
-                                arguments: project,
+                    ),
+                    Text(
+                      "Sunday, 22 Jan 2026",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    Padding(padding: EdgeInsets.only(top: 20)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Container(
+                          height: 78,
+                          width: 78,
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(255, 135, 111, 231),
+                            borderRadius: BorderRadius.all(Radius.circular(20)),
+                          ),
+                          child: Center(
+                            child: Text(
+                              "Stats 2",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          height: 78,
+                          width: 78,
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(255, 135, 111, 231),
+                            borderRadius: BorderRadius.all(Radius.circular(20)),
+                          ),
+                          child: Center(
+                            child: Text(
+                              "Stats 2",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          height: 78,
+                          width: 78,
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(255, 135, 111, 231),
+                            borderRadius: BorderRadius.all(Radius.circular(20)),
+                          ),
+                          child: Center(
+                            child: Text(
+                              "Stats 3",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          height: 78,
+                          width: 78,
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(255, 135, 111, 231),
+                            borderRadius: BorderRadius.all(Radius.circular(20)),
+                          ),
+                          child: Center(
+                            child: Text(
+                              "Stats 4",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              //Task overview
+              Padding(
+                padding: EdgeInsets.all(20),
+                child: Card(
+                  color: Colors.white,
+                  elevation: 1.5,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: SizedBox(
+                    height: 200,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Text(
+                              "Task Overview",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
                               ),
-                            );
-                          },
-                        );
-                      }),
-                    ],
+                            ),
+                            ListView.builder(
+                              // itemCount: allTasks.length,
+                              itemCount: TaskController().tasks.length,
+                              itemBuilder: (context, index) {
+                                Task task = TaskController().tasks[index];
+
+                                return Card(
+                                  child: ListTile(
+                                    title: Text(task.title),
+                                    subtitle: Text(task.priority),
+                                  ),
+                                );
+                              },
+                            ),
+                            Text(
+                              "Task Analytics",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Padding(padding: EdgeInsets.only(top: 20)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Container(
+                              height: 100,
+                              width: 100,
+                              color: Colors.cyan,
+                            ),
+                            Column(
+                              children: [
+                                Text("Temp stat 1"),
+                                Text("Temp stat 2"),
+                                Text("Temp stat 3"),
+                                Text("Temp stat 4"),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 20, right: 20),
+                child: Row(
+                  children: [
+                    Text(
+                      "All Tasks",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Spacer(),
+                    Text("See all"),
+                    Icon(Icons.arrow_forward_ios),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 20, right: 20),
+                child: Row(
+                  children: [
+                    Text(
+                      "Upcoming Deadlines",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Spacer(),
+                    Text("See all"),
+                    Icon(Icons.arrow_forward_ios),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Get.to(() => EmployeeManagementPage());
-        },
-        child: Icon(Icons.add),
       ),
     );
   }

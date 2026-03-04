@@ -2,7 +2,7 @@ class Task {
   String? id;
   String title;
   String description;
-  String? priority;
+  String priority;
   String? status;
   String ownerId;
   String? remark;
@@ -12,7 +12,7 @@ class Task {
     this.id,
     required this.title,
     required this.description,
-    this.priority,
+    required this.priority,
     this.status,
     required this.ownerId,
     this.remark,

@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: AppColors.background,
         brightness: Brightness.light,
       ),
-      home: LoginPage(),
+      home: AdminDashboard(),
     );
   }
 }
