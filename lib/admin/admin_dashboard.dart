@@ -9,6 +9,15 @@ import 'package:managementt/controller/task_controller.dart';
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});
 
+  Future<void> _refreshDashboard(BuildContext context) async {
+    final controller = TaskController();
+    await controller.getAllTask();
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Dashboard refreshed')));
+  }
+
   @override
   Widget build(BuildContext context) {
     final tasks = TaskController().tasks;
@@ -155,10 +164,7 @@ class AdminDashboard extends StatelessWidget {
                       style: TextStyle(color: Colors.white),
                     ),
                     Padding(padding: EdgeInsets.only(top: 20)),
-                    Wrap(
-                      alignment: WrapAlignment.spaceBetween,
-                      spacing: 10,
-                      runSpacing: 10,
+                    Row(
                       children: [
                         Expanded(
                           child: _TopStatCard(
