@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:managementt/admin/add_task.dart';
 import 'package:managementt/admin/register_employee.dart';
 import 'package:managementt/admin/employee_details_page.dart';
 import 'package:managementt/components/animated_gradient_container.dart';
 import 'package:managementt/components/container_design.dart';
-import 'package:managementt/controller/member_controller.dart';
+import 'package:managementt/controller/task_controller.dart';
 
-class EmployeeDashboard extends StatelessWidget {
-  EmployeeDashboard({super.key});
-  final MemberController memberController = Get.put(MemberController());
-  final int totalEmployeeCount = 10;
+class ProjectDashboard extends StatelessWidget {
+  ProjectDashboard({super.key});
+  final TaskController taskController = Get.put(TaskController());
+  final int totalProjectCount = 10;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,13 +22,13 @@ class EmployeeDashboard extends StatelessWidget {
         title: Row(
           children: [
             Text(
-              "Employee Dashboard",
+              "Project Dashboard",
               style: TextStyle(color: Colors.white, fontSize: 25),
             ),
             Spacer(),
             InkWell(
               onTap: () {
-                Get.to(() => RegisterEmployees());
+                Get.to(() => AddTask());
               },
               child: Container(
                 padding: EdgeInsets.all(8),
@@ -62,7 +63,7 @@ class EmployeeDashboard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "$totalEmployeeCount total employees",
+                  "$totalProjectCount total projects",
                   style: TextStyle(color: Colors.white),
                 ),
                 SizedBox(height: 10),
@@ -96,28 +97,28 @@ class EmployeeDashboard extends StatelessWidget {
           ),
           Expanded(
             child: Obx(() {
-              if (memberController.isLoading.value) {
+              if (taskController.isLoading.value) {
                 return Center(child: CircularProgressIndicator());
               }
-              if (memberController.members.isEmpty) {
-                return Center(child: Text("No Members Found"));
+              if (taskController.tasks.isEmpty) {
+                return Center(child: Text("No project Found"));
               }
 
               return ListView.builder(
-                itemCount: memberController.members.length,
+                itemCount: taskController.tasks.length,
                 itemBuilder: (context, index) {
-                  final member = memberController.members[index];
+                  final task = taskController.tasks[index];
 
                   return InkWell(
                     onTap: () {
-                      Get.to(() => EmployeeDetailsPage(), arguments: member);
+                      Get.to(() => EmployeeDetailsPage(), arguments: task);
                     },
                     child: ContainerDesign(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            member.name,
+                            task.title,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
@@ -130,7 +131,7 @@ class EmployeeDashboard extends StatelessWidget {
                                 AlertDialog(
                                   title: Text("Confirm Remove"),
                                   content: Text(
-                                    "Are you sure you want to remove ${member.name} ?",
+                                    "Are you sure you want to remove ${task.title} ?",
                                   ),
                                   actions: [
                                     TextButton(
@@ -141,10 +142,8 @@ class EmployeeDashboard extends StatelessWidget {
                                     ),
                                     TextButton(
                                       onPressed: () {
-                                        if (member.id != null) {
-                                          memberController.removeMember(
-                                            member.id!,
-                                          );
+                                        if (task.id != null) {
+                                          taskController.removeTask(task.id!);
                                         }
                                         Get.back();
                                       },

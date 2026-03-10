@@ -44,7 +44,7 @@ class _AnimatedGradientContainerState extends State<AnimatedGradientContainer>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        return Container(
+        final container = Container(
           height: widget.height,
           width: widget.width,
           padding: widget.padding,
@@ -68,6 +68,9 @@ class _AnimatedGradientContainerState extends State<AnimatedGradientContainer>
           ),
           child: child,
         );
+        return widget.height != null
+            ? container
+            : IntrinsicHeight(child: container);
       },
       child: widget.child,
     );

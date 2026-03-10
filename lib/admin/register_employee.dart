@@ -5,14 +5,14 @@ import 'package:managementt/components/app_colors.dart';
 import 'package:managementt/controller/member_controller.dart';
 import 'package:managementt/model/member.dart';
 
-class AddEmployee extends StatefulWidget {
-  const AddEmployee({super.key});
+class RegisterEmployees extends StatefulWidget {
+  const RegisterEmployees({super.key});
 
   @override
-  State<AddEmployee> createState() => _AddEmployeeState();
+  State<RegisterEmployees> createState() => _RegisterEmployeesState();
 }
 
-class _AddEmployeeState extends State<AddEmployee>
+class _RegisterEmployeesState extends State<RegisterEmployees>
     with TickerProviderStateMixin {
   final TextEditingController nameController = TextEditingController();
   final roleController = ''.obs;

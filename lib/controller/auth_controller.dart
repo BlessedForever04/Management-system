@@ -1,6 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
-import 'package:managementt/admin/admin_dashboard.dart';
+import 'package:managementt/admin/main_dashboard.dart';
 import 'package:managementt/login_page.dart';
 import 'package:managementt/members/member_dashboard.dart';
 import 'package:managementt/model/auth_response.dart';

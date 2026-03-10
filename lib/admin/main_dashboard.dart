@@ -123,7 +123,11 @@ class AdminDashboard extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(toolbarHeight: 0, backgroundColor: AppColors.primary),
+      appBar: AppBar(
+        toolbarHeight: 0,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
 
       bottomNavigationBar: const DashboardBottomNav(),
       body: SafeArea(
