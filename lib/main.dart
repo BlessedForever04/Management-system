@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:managementt/admin/project_dashboard.dart';
-import 'package:managementt/admin/register_employee.dart';
-import 'package:managementt/admin/main_dashboard.dart';
-import 'package:managementt/admin/employee_dashboard.dart';
+import 'package:managementt/admin/admin_wrapper.dart';
 import 'package:managementt/components/app_colors.dart';
 import 'package:managementt/controller/auth_controller.dart';
 import 'package:managementt/controller/member_controller.dart';
@@ -34,7 +31,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: AppColors.background,
         brightness: Brightness.light,
       ),
-      home: ProjectDashboard(),
+      home: AdminWrapper(),
     );
   }
 }
@@ -57,14 +54,14 @@ class SplashScreen extends StatelessWidget {
 
       // No saved session — show login.
       if (!auth.isLoggedIn.value) {
-        return ProjectDashboard();
+        return AdminWrapper();
       }
 
       // Session restored — render the correct dashboard directly.
       if (auth.role.value == 'ADMIN') {
-        return ProjectDashboard();
+        return AdminWrapper();
       } else {
-        return ProjectDashboard();
+        return AdminWrapper();
       }
     });
   }

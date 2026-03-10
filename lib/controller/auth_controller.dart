@@ -1,6 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
-import 'package:managementt/admin/main_dashboard.dart';
+import 'package:managementt/admin/admin_wrapper.dart';
 import 'package:managementt/login_page.dart';
 import 'package:managementt/members/member_dashboard.dart';
 import 'package:managementt/model/auth_response.dart';
@@ -88,7 +88,7 @@ class AuthController extends GetxController {
   /// Navigate based on role.
   void _navigateByRole() {
     if (role.value == 'ADMIN') {
-      Get.offAll(() => AdminDashboard());
+      Get.offAll(() => AdminWrapper());
     } else {
       Get.offAll(() => MemberDashboard());
     }

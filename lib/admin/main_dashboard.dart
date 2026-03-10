@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:managementt/components/animated_gradient_container.dart';
 import 'package:managementt/components/app_colors.dart';
-import 'package:managementt/components/dashboard_bottom_nav.dart';
+
 import 'package:managementt/components/dashboard_tiles.dart';
 import 'package:managementt/components/donut_chart.dart';
 import 'package:managementt/components/project_card.dart';
@@ -122,6 +122,7 @@ class AdminDashboard extends StatelessWidget {
         ((statusData.first.count / totalStatusCount) * 100).toStringAsFixed(0);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         toolbarHeight: 0,
@@ -129,7 +130,6 @@ class AdminDashboard extends StatelessWidget {
         elevation: 0,
       ),
 
-      bottomNavigationBar: const DashboardBottomNav(),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
