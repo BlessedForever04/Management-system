@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: AppColors.background,
         brightness: Brightness.light,
       ),
-      home: AdminWrapper(),
+      home: SplashScreen(),
     );
   }
 }
@@ -54,7 +54,7 @@ class SplashScreen extends StatelessWidget {
 
       // No saved session — show login.
       if (!auth.isLoggedIn.value) {
-        return AdminWrapper();
+        return LoginPage();
       }
 
       // Session restored — render the correct dashboard directly.

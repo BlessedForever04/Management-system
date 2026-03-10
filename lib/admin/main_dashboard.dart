@@ -122,20 +122,20 @@ class AdminDashboard extends StatelessWidget {
         ((statusData.first.count / totalStatusCount) * 100).toStringAsFixed(0);
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
       backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        toolbarHeight: 0,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
 
       body: SafeArea(
+        top: false,
         child: SingleChildScrollView(
           child: Column(
             children: [
               AnimatedGradientContainer(
-                padding: const EdgeInsets.fromLTRB(12, 10, 12, 14),
+                padding: EdgeInsets.fromLTRB(
+                  12,
+                  MediaQuery.of(context).padding.top + 10,
+                  12,
+                  14,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
