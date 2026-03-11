@@ -17,7 +17,10 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final priorityController = ''.obs;
+  final selectedType = ''.obs;
   final selectedMemberId = ''.obs;
+  final Rx<DateTime?> selectedDeadline = Rx<DateTime?>(null);
+  final Rx<DateTime?> selectedStartDate = Rx<DateTime?>(null);
   final TaskController _taskController = Get.find<TaskController>();
   final MemberController _memberController = Get.find<MemberController>();
 
@@ -31,7 +34,7 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
   late final Animation<double> _headerFade;
   late final Animation<Offset> _headerSlide;
   late final Animation<double> _cardSlide;
-  // 5 items: title, description, priority, member, button
+  // 7 items: title, description, type, priority, dates, member, button
   late final List<Animation<double>> _fieldFades;
   late final List<Animation<Offset>> _fieldSlides;
   late final Animation<double> _pulseScale;
@@ -75,9 +78,9 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
       ),
     );
 
-    _fieldFades = List.generate(5, (i) {
-      final start = 0.3 + (i * 0.12);
-      final end = (start + 0.18).clamp(0.0, 1.0);
+    _fieldFades = List.generate(7, (i) {
+      final start = 0.3 + (i * 0.08);
+      final end = (start + 0.14).clamp(0.0, 1.0);
       return Tween<double>(begin: 0.0, end: 1.0).animate(
         CurvedAnimation(
           parent: _staggerController,
@@ -85,9 +88,9 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
         ),
       );
     });
-    _fieldSlides = List.generate(5, (i) {
-      final start = 0.3 + (i * 0.12);
-      final end = (start + 0.18).clamp(0.0, 1.0);
+    _fieldSlides = List.generate(7, (i) {
+      final start = 0.3 + (i * 0.08);
+      final end = (start + 0.14).clamp(0.0, 1.0);
       return Tween<Offset>(
         begin: const Offset(0, 0.25),
         end: Offset.zero,
@@ -294,9 +297,41 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
                             ),
                             const SizedBox(height: 20),
 
-                            // Priority
+                            // Type selector
                             _animatedField(
                               2,
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildLabel("Type"),
+                                  const SizedBox(height: 8),
+                                  Obx(
+                                    () => Row(
+                                      children: [
+                                        _buildTypeChip(
+                                          "PROJECT",
+                                          "Project",
+                                          Icons.folder_rounded,
+                                          color: const Color(0xFF7C3AED),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        _buildTypeChip(
+                                          "TASK",
+                                          "Task",
+                                          Icons.task_alt_rounded,
+                                          color: AppColors.primary,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+
+                            // Priority
+                            _animatedField(
+                              3,
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -333,9 +368,47 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
                             ),
                             const SizedBox(height: 20),
 
+                            // Dates row
+                            _animatedField(
+                              4,
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildLabel("Dates"),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Obx(
+                                          () => _buildDatePicker(
+                                            label: "Start Date",
+                                            date: selectedStartDate.value,
+                                            onTap: () =>
+                                                _pickDate(selectedStartDate),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Obx(
+                                          () => _buildDatePicker(
+                                            label: "Deadline",
+                                            date: selectedDeadline.value,
+                                            onTap: () =>
+                                                _pickDate(selectedDeadline),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+
                             // Member selector
                             _animatedField(
-                              3,
+                              5,
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -386,7 +459,7 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
 
                             // Submit button
                             _animatedField(
-                              4,
+                              6,
                               Obx(() {
                                 if (_taskController.isLoading.value) {
                                   return const Center(
@@ -628,6 +701,125 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
     );
   }
 
+  Widget _buildTypeChip(
+    String value,
+    String label,
+    IconData icon, {
+    required Color color,
+  }) {
+    final isSelected = selectedType.value == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => selectedType.value = value,
+        child: AnimatedScale(
+          scale: isSelected ? 1.05 : 1.0,
+          duration: const Duration(milliseconds: 200),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOut,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? color.withValues(alpha: 0.1)
+                  : const Color(0xFFF8F9FC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isSelected ? color : Colors.grey.withValues(alpha: 0.2),
+                width: isSelected ? 1.5 : 1,
+              ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: color.withValues(alpha: 0.2),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ]
+                  : [],
+            ),
+            child: Column(
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: Icon(
+                    icon,
+                    key: ValueKey(isSelected),
+                    size: 18,
+                    color: isSelected ? color : AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    color: isSelected ? color : AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDatePicker({
+    required String label,
+    required DateTime? date,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8F9FC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: date != null
+                ? AppColors.primary.withValues(alpha: 0.4)
+                : Colors.grey.withValues(alpha: 0.2),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.calendar_today_rounded,
+              size: 16,
+              color: date != null ? AppColors.primary : AppColors.textSecondary,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                date != null ? "${date.day}/${date.month}/${date.year}" : label,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: date != null
+                      ? const Color(0xFF1F2937)
+                      : Colors.grey[400],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickDate(Rx<DateTime?> target) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: target.value ?? DateTime.now(),
+      firstDate: DateTime(2024),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null) {
+      target.value = picked;
+    }
+  }
+
   Widget _buildMemberChip(String id, String name) {
     final isSelected = selectedMemberId.value == id;
     final initials = name.isNotEmpty
@@ -706,6 +898,7 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
   void _handleSubmit() async {
     if (titleController.text.isEmpty ||
         descriptionController.text.isEmpty ||
+        selectedType.value.isEmpty ||
         selectedMemberId.value.isEmpty ||
         priorityController.value.isEmpty) {
       Get.snackbar(
@@ -724,7 +917,11 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
         title: titleController.text,
         description: descriptionController.text,
         priority: priorityController.value,
+        type: selectedType.value,
+        status: 'NOT_STARTED',
         ownerId: selectedMemberId.value,
+        deadLine: selectedDeadline.value,
+        startDate: selectedStartDate.value ?? DateTime.now(),
       ),
     );
     await _memberController.getMembers();

@@ -3,7 +3,9 @@ import 'package:get/get.dart';
 import 'package:managementt/admin/admin_wrapper.dart';
 import 'package:managementt/components/app_colors.dart';
 import 'package:managementt/controller/auth_controller.dart';
+import 'package:managementt/controller/dashboard_controller.dart';
 import 'package:managementt/controller/member_controller.dart';
+import 'package:managementt/controller/profile_controller.dart';
 import 'package:managementt/controller/task_controller.dart';
 import 'package:managementt/login_page.dart';
 import 'package:managementt/members/member_dashboard.dart';
@@ -15,6 +17,8 @@ void main() {
   Get.put(AuthController());
   Get.lazyPut(() => TaskController());
   Get.lazyPut(() => MemberController());
+  Get.lazyPut(() => DashboardController());
+  Get.lazyPut(() => ProfileController());
 
   runApp(const MyApp());
 }
@@ -54,7 +58,7 @@ class SplashScreen extends StatelessWidget {
 
       // No saved session — show login.
       if (!auth.isLoggedIn.value) {
-        return AdminWrapper();
+        return LoginPage();
       }
 
       // Session restored — render the correct dashboard directly.

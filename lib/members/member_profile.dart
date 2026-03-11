@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managementt/controller/admin_nav_controller.dart';
+import 'package:managementt/controller/profile_controller.dart';
 
 class MemberProfilePage extends StatefulWidget {
   const MemberProfilePage({super.key});
@@ -12,524 +13,560 @@ class MemberProfilePage extends StatefulWidget {
 class _MemberProfilePageState extends State<MemberProfilePage>
     with SingleTickerProviderStateMixin {
   bool _showProjects = false;
-  bool _isLoadingProjects = false;
-  List<_ProjectItem> _loadedProjects = const [];
-
-  Future<void> _loadProjectsIfNeeded() async {
-    if (_loadedProjects.isNotEmpty || _isLoadingProjects) return;
-    setState(() => _isLoadingProjects = true);
-    await Future.delayed(const Duration(milliseconds: 300));
-    if (!mounted) return;
-    setState(() {
-      _loadedProjects = const [
-        _ProjectItem(
-          title: 'E-Commerce Platform Redesign',
-          company: 'ShopNow Inc.',
-          progress: 0.78,
-          progressText: '78%',
-          taskSummary: '1/2 tasks completed',
-          dueText: '9d over',
-          accent: Color(0xFF2F59F7),
-          dueColor: Color(0xFFFF4D57),
-        ),
-        _ProjectItem(
-          title: 'Mobile Banking App v2',
-          company: 'TrustBank Corp.',
-          progress: 0.35,
-          progressText: '35%',
-          taskSummary: '1/3 tasks completed',
-          dueText: '36d left',
-          accent: Color(0xFF0FA885),
-          dueColor: Color(0xFF10B981),
-        ),
-        _ProjectItem(
-          title: 'AI Analytics Dashboard',
-          company: 'DataViz Ltd.',
-          progress: 0.08,
-          progressText: '8%',
-          taskSummary: '0/1 tasks completed',
-          dueText: '66d left',
-          accent: Color(0xFF8B5CF6),
-          dueColor: Color(0xFF8B5CF6),
-        ),
-      ];
-      _isLoadingProjects = false;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
-    final tasks = <_TaskItem>[
-      const _TaskItem(
-        title: 'UI Component Library Setup',
-        project: 'E-Commerce Platform Redesign',
-        status: 'Done',
-        due: 'Dec 20',
-        accent: Color(0xFFE91E63),
-        statusColor: Color(0xFF22C55E),
-        isCompleted: true,
-      ),
-      const _TaskItem(
-        title: 'Checkout Flow Optimization',
-        project: 'E-Commerce Platform Redesign',
-        status: 'In Progress',
-        due: '14d overdue',
-        accent: Color(0xFFFFD54F),
-        statusColor: Color(0xFF3B82F6),
-      ),
-      const _TaskItem(
-        title: 'Leave Management Module',
-        project: 'HR Management System',
-        status: 'Done',
-        due: 'Dec 15',
-        accent: Color(0xFFE91E63),
-        statusColor: Color(0xFF22C55E),
-        isCompleted: true,
-      ),
-      const _TaskItem(
-        title: 'ML Model Integration',
-        project: 'AI Analytics Dashboard',
-        status: 'To Do',
-        due: 'Apr 1',
-        accent: Color(0xFFE91E63),
-        statusColor: Color(0xFF9CA3AF),
-      ),
-    ];
-
+    final pc = Get.find<ProfileController>();
     final topPad = MediaQuery.of(context).padding.top;
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // ─── Header ───
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.fromLTRB(16, topPad + 12, 16, 20),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF6D70F6), Color(0xFF8986F8)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+      body: Obx(() {
+        final tasks = pc.memberTasks.map((t) {
+          final isCompleted = t.status == 'DONE';
+          Color statusColor;
+          String statusLabel;
+          String dueText;
+
+          switch (t.status) {
+            case 'DONE':
+              statusColor = const Color(0xFF22C55E);
+              statusLabel = 'Done';
+              break;
+            case 'TODO':
+              statusColor = const Color(0xFF3B82F6);
+              statusLabel = 'In Progress';
+              break;
+            case 'OVERDUE':
+              statusColor = const Color(0xFFEF4444);
+              statusLabel = 'Overdue';
+              break;
+            default:
+              statusColor = const Color(0xFF9CA3AF);
+              statusLabel = 'To Do';
+          }
+
+          if (t.deadLine != null) {
+            final diff = t.deadLine!
+                .difference(
+                  DateTime(
+                    DateTime.now().year,
+                    DateTime.now().month,
+                    DateTime.now().day,
+                  ),
+                )
+                .inDays;
+            if (diff < 0) {
+              dueText = '${-diff}d overdue';
+            } else if (diff == 0) {
+              dueText = 'Today';
+            } else {
+              dueText = '${t.deadLine!.month}/${t.deadLine!.day}';
+            }
+          } else {
+            dueText = '';
+          }
+
+          return _TaskItem(
+            title: t.title,
+            project: t.description,
+            status: statusLabel,
+            due: dueText,
+            accent: const Color(0xFFE91E63),
+            statusColor: statusColor,
+            isCompleted: isCompleted,
+          );
+        }).toList();
+
+        return SingleChildScrollView(
+          child: Column(
+            children: [
+              // ─── Header ───
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.fromLTRB(16, topPad + 12, 16, 20),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF6D70F6), Color(0xFF8986F8)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(28),
+                    bottomRight: Radius.circular(28),
+                  ),
                 ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(28),
-                  bottomRight: Radius.circular(28),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Back + settings row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          final nav = Get.find<AdminNavController>();
-                          nav.changePage(0);
-                        },
-                        child: Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Back + settings row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            final nav = Get.find<AdminNavController>();
+                            nav.changePage(0);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.arrow_back_rounded,
+                              size: 20,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
-                            Icons.arrow_back_rounded,
+                            Icons.more_horiz_rounded,
                             size: 20,
                             color: Colors.white,
                           ),
                         ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.more_horiz_rounded,
-                          size: 20,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  // Avatar + name row
-                  Row(
-                    children: [
-                      Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF4F46E5),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.25),
-                            width: 2,
-                          ),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            'SC',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 20,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Sarah Chen',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: -0.3,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Senior Developer',
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.75),
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Text(
-                                'Engineering',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-                  // Stat pills
-                  Row(
-                    children: const [
-                      Expanded(
-                        child: _StatCard(
-                          count: '4',
-                          label: 'Total',
-                          icon: Icons.assignment_rounded,
-                        ),
-                      ),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: _StatCard(
-                          count: '2',
-                          label: 'Active',
-                          icon: Icons.play_circle_outline_rounded,
-                        ),
-                      ),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: _StatCard(
-                          count: '2',
-                          label: 'Done',
-                          icon: Icons.task_alt_rounded,
-                        ),
-                      ),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: _StatCard(
-                          count: '1',
-                          label: 'Overdue',
-                          icon: Icons.warning_amber_rounded,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            // ─── Contact info card ───
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  const _InfoRow(
-                    icon: Icons.email_outlined,
-                    text: 'sarah.chen@company.com',
-                    iconColor: Color(0xFF6366F1),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    child: Divider(
-                      color: Colors.grey.withValues(alpha: 0.15),
-                      height: 1,
+                      ],
                     ),
-                  ),
-                  const _InfoRow(
-                    icon: Icons.phone_outlined,
-                    text: '1 (555) 234 5678',
-                    iconColor: Color(0xFF6366F1),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    child: Divider(
-                      color: Colors.grey.withValues(alpha: 0.15),
-                      height: 1,
-                    ),
-                  ),
-                  const _InfoRow(
-                    icon: Icons.calendar_month_outlined,
-                    text: 'Joined March 15, 2023',
-                    iconColor: Color(0xFF9CA3AF),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            // ─── Completion rate card ───
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF3B5BFD).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.pie_chart_rounded,
-                          size: 18,
-                          color: Color(0xFF3B5BFD),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Task Completion Rate',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black.withValues(alpha: 0.85),
-                        ),
-                      ),
-                      const Spacer(),
-                      const Text(
-                        '50%',
-                        style: TextStyle(
-                          color: Color(0xFF3B5BFD),
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: const LinearProgressIndicator(
-                      value: 0.5,
-                      minHeight: 6,
-                      backgroundColor: Color(0xFFEEF0F8),
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Color(0xFF3B5BFD),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            // ─── Tabs + content ───
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  // Tab bar
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF3F4F8),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
+                    const SizedBox(height: 16),
+                    // Avatar + name row
+                    Row(
                       children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => setState(() => _showProjects = false),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              decoration: BoxDecoration(
-                                color: !_showProjects
-                                    ? Colors.white
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(10),
-                                boxShadow: !_showProjects
-                                    ? [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(
-                                            alpha: 0.06,
-                                          ),
-                                          blurRadius: 6,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ]
-                                    : null,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  'Tasks (4)',
-                                  style: TextStyle(
-                                    color: !_showProjects
-                                        ? const Color(0xFF3B5BFD)
-                                        : const Color(0xFF9CA3AF),
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4F46E5),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.25),
+                              width: 2,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              pc.initials,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 20,
                               ),
                             ),
                           ),
                         ),
+                        const SizedBox(width: 14),
                         Expanded(
-                          child: GestureDetector(
-                            onTap: () async {
-                              setState(() => _showProjects = true);
-                              await _loadProjectsIfNeeded();
-                            },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              decoration: BoxDecoration(
-                                color: _showProjects
-                                    ? Colors.white
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(10),
-                                boxShadow: _showProjects
-                                    ? [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(
-                                            alpha: 0.06,
-                                          ),
-                                          blurRadius: 6,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ]
-                                    : null,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                pc.memberName,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.3,
+                                ),
                               ),
-                              child: Center(
+                              const SizedBox(height: 2),
+                              Text(
+                                pc.memberRole,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.75),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
                                 child: Text(
-                                  'Projects (3)',
-                                  style: TextStyle(
-                                    color: _showProjects
-                                        ? const Color(0xFF3B5BFD)
-                                        : const Color(0xFF9CA3AF),
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
+                                  pc.memberRole,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 14),
-                  // Content
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 250),
-                    child: _showProjects
-                        ? _isLoadingProjects
-                              ? const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 24),
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    color: Color(0xFF6366F1),
-                                  ),
-                                )
-                              : Column(
-                                  key: const ValueKey('projects'),
-                                  children: _loadedProjects
-                                      .map((p) => _ProjectMiniCard(item: p))
-                                      .toList(),
-                                )
-                        : Column(
-                            key: const ValueKey('tasks'),
-                            children: tasks
-                                .map((t) => _TaskCard(item: t))
-                                .toList(),
+                    const SizedBox(height: 18),
+                    // Stat pills
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _StatCard(
+                            count: '${pc.totalTasks}',
+                            label: 'Total',
+                            icon: Icons.assignment_rounded,
                           ),
-                  ),
-                ],
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _StatCard(
+                            count: '${pc.activeTasks}',
+                            label: 'Active',
+                            icon: Icons.play_circle_outline_rounded,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _StatCard(
+                            count: '${pc.doneTasks}',
+                            label: 'Done',
+                            icon: Icons.task_alt_rounded,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _StatCard(
+                            count: '${pc.overdueTasks}',
+                            label: 'Overdue',
+                            icon: Icons.warning_amber_rounded,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-            // bottom padding for nav bar
-            const SizedBox(height: 100),
-          ],
-        ),
-      ),
+              const SizedBox(height: 16),
+              // ─── Contact info card ───
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    _InfoRow(
+                      icon: Icons.email_outlined,
+                      text: pc.memberEmail,
+                      iconColor: const Color(0xFF6366F1),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Divider(
+                        color: Colors.grey.withValues(alpha: 0.15),
+                        height: 1,
+                      ),
+                    ),
+                    _InfoRow(
+                      icon: Icons.phone_outlined,
+                      text: pc.memberPhone,
+                      iconColor: const Color(0xFF6366F1),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              // ─── Completion rate card ───
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(
+                              0xFF3B5BFD,
+                            ).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.pie_chart_rounded,
+                            size: 18,
+                            color: Color(0xFF3B5BFD),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Task Completion Rate',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black.withValues(alpha: 0.85),
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          pc.completionPercent,
+                          style: const TextStyle(
+                            color: Color(0xFF3B5BFD),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: pc.completionRate,
+                        minHeight: 6,
+                        backgroundColor: const Color(0xFFEEF0F8),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          Color(0xFF3B5BFD),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              // ─── Tabs + content ───
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    // Tab bar
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF3F4F8),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () =>
+                                  setState(() => _showProjects = false),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: !_showProjects
+                                      ? Colors.white
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(10),
+                                  boxShadow: !_showProjects
+                                      ? [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(
+                                              alpha: 0.06,
+                                            ),
+                                            blurRadius: 6,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    'Tasks (${pc.memberTasks.length})',
+                                    style: TextStyle(
+                                      color: !_showProjects
+                                          ? const Color(0xFF3B5BFD)
+                                          : const Color(0xFF9CA3AF),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => setState(() => _showProjects = true),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _showProjects
+                                      ? Colors.white
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(10),
+                                  boxShadow: _showProjects
+                                      ? [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(
+                                              alpha: 0.06,
+                                            ),
+                                            blurRadius: 6,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    'Projects (${pc.memberProjects.length})',
+                                    style: TextStyle(
+                                      color: _showProjects
+                                          ? const Color(0xFF3B5BFD)
+                                          : const Color(0xFF9CA3AF),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    // Content
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      child: _showProjects
+                          ? pc.memberProjects.isEmpty
+                                ? const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 24),
+                                    child: Text(
+                                      'No projects assigned',
+                                      style: TextStyle(
+                                        color: Color(0xFF9CA3AF),
+                                      ),
+                                    ),
+                                  )
+                                : Column(
+                                    key: const ValueKey('projects'),
+                                    children: pc.memberProjects
+                                        .map(
+                                          (p) => _ProjectMiniCard(
+                                            item: _ProjectItem(
+                                              title: p.title,
+                                              company: p.description,
+                                              progress: p.progress / 100.0,
+                                              progressText: '${p.progress}%',
+                                              taskSummary:
+                                                  '${p.completedTask}/${p.completedTask + p.remainingTask} tasks completed',
+                                              dueText: _formatDeadline(
+                                                p.deadLine,
+                                              ),
+                                              accent: _projectColor(
+                                                pc.memberProjects.indexOf(p),
+                                              ),
+                                              dueColor: _deadlineColor(
+                                                p.deadLine,
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                        .toList(),
+                                  )
+                          : tasks.isEmpty
+                          ? const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 24),
+                              child: Text(
+                                'No tasks assigned',
+                                style: TextStyle(color: Color(0xFF9CA3AF)),
+                              ),
+                            )
+                          : Column(
+                              key: const ValueKey('tasks'),
+                              children: tasks
+                                  .map((t) => _TaskCard(item: t))
+                                  .toList(),
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+              // bottom padding for nav bar
+              const SizedBox(height: 100),
+            ],
+          ),
+        );
+      }),
     );
+  }
+
+  static String _formatDeadline(DateTime? deadline) {
+    if (deadline == null) return '';
+    final today = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+    );
+    final diff = deadline.difference(today).inDays;
+    if (diff > 0) return '${diff}d left';
+    if (diff < 0) return '${-diff}d over';
+    return 'Today';
+  }
+
+  static Color _deadlineColor(DateTime? deadline) {
+    if (deadline == null) return const Color(0xFF9CA3AF);
+    final today = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+    );
+    final diff = deadline.difference(today).inDays;
+    if (diff < 0) return const Color(0xFFFF4D57);
+    return const Color(0xFF10B981);
+  }
+
+  static const _projectColors = [
+    Color(0xFF2F59F7),
+    Color(0xFF0FA885),
+    Color(0xFF8B5CF6),
+    Color(0xFFE91E63),
+  ];
+
+  static Color _projectColor(int index) {
+    return _projectColors[index % _projectColors.length];
   }
 }
 

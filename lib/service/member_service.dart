@@ -32,4 +32,22 @@ class MemberService {
       throw Exception('Failed to load Member');
     }
   }
+
+  Future<int> getTaskCount(String ownerId) async {
+    final response = await _api.get('/members/taskCount/$ownerId');
+    if (response.statusCode == 200) {
+      return int.tryParse(response.body) ?? 0;
+    } else {
+      throw Exception('Failed to get task count');
+    }
+  }
+
+  Future<int> getStatusCount(String ownerId, String status) async {
+    final response = await _api.get('/members/$ownerId/projects/$status/count');
+    if (response.statusCode == 200) {
+      return int.tryParse(response.body) ?? 0;
+    } else {
+      throw Exception('Failed to get status count');
+    }
+  }
 }

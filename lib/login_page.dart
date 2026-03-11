@@ -131,6 +131,7 @@ class LoginPage extends StatelessWidget {
                                         .login(email, password);
                                     await AuthController.to.setAuthData(
                                       authResponse,
+                                      loginUsername: email,
                                     );
                                   } catch (e) {
                                     Get.snackbar(

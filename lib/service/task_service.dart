@@ -18,14 +18,24 @@ class TaskService {
     }
   }
 
-  Future<List<Task>> getAllTask() async {
-    final response = await _api.get('/tasks/AllTasks');
+  /// Fetch tasks by type (PROJECT or TASK).
+  Future<List<Task>> getTasksByType(String type) async {
+    final response = await _api.get('/tasks/allTasks/$type');
     if (response.statusCode == 200) {
       final List data = jsonDecode(response.body);
       return data.map((e) => Task.fromJson(e)).toList();
     } else {
-      throw Exception('Failed to load tasks');
+      throw Exception('Failed to load tasks of type $type');
     }
+  }
+
+  /// Fetch all tasks (both PROJECT and TASK types combined).
+  Future<List<Task>> getAllTask() async {
+    final results = await Future.wait([
+      getTasksByType('PROJECT'),
+      getTasksByType('TASK'),
+    ]);
+    return [...results[0], ...results[1]];
   }
 
   Future<List<Task>> getTaskByOwner(String id) async {
@@ -44,5 +54,15 @@ class TaskService {
 
   Future<void> deleteTask(String id) async {
     await _api.delete('/tasks/delete/$id');
+  }
+
+  /// Get total count of tasks by type.
+  Future<int> getTaskCountByType(String type) async {
+    final response = await _api.get('/tasks/TaskCount/$type');
+    if (response.statusCode == 200) {
+      return int.tryParse(response.body) ?? 0;
+    } else {
+      throw Exception('Failed to get task count');
+    }
   }
 }
