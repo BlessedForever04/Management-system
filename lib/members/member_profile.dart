@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:managementt/components/app_colors.dart';
 import 'package:managementt/components/app_confirm_dialog.dart';
 import 'package:managementt/components/app_render_entrance.dart';
+import 'package:managementt/components/date_time_helper.dart';
 import 'package:managementt/controller/admin_nav_controller.dart';
 import 'package:managementt/controller/auth_controller.dart';
 import 'package:managementt/controller/profile_controller.dart';
@@ -508,7 +509,14 @@ class MemberProfilePage extends StatelessWidget {
                                                 title: p.title,
                                                 company: p.description,
                                                 progress: p.progress / 100.0,
+                                                timeProgress:
+                                                    DateTimeHelper.remainingTimeRatio(
+                                                      p.startDate,
+                                                      p.deadLine,
+                                                    ),
                                                 progressText: '${p.progress}%',
+                                                timeProgressText:
+                                                    '${(DateTimeHelper.remainingTimeRatio(p.startDate, p.deadLine) * 100).toStringAsFixed(0)}%',
                                                 taskSummary:
                                                     '${p.completedTask}/${p.completedTask + p.remainingTask} tasks completed',
                                                 dueText: _formatDeadline(
@@ -819,7 +827,9 @@ class _ProjectItem {
   final String title;
   final String company;
   final double progress;
+  final double timeProgress;
   final String progressText;
+  final String timeProgressText;
   final String taskSummary;
   final String dueText;
   final Color accent;
@@ -829,7 +839,9 @@ class _ProjectItem {
     required this.title,
     required this.company,
     required this.progress,
+    required this.timeProgress,
     required this.progressText,
+    required this.timeProgressText,
     required this.taskSummary,
     required this.dueText,
     required this.accent,
@@ -912,24 +924,73 @@ class _ProjectMiniCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    value: item.progress,
-                    minHeight: 5,
-                    backgroundColor: const Color(0xFFE5E7EB),
-                    valueColor: AlwaysStoppedAnimation<Color>(item.accent),
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Project Progress',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF6B7280),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: item.progress,
+                        minHeight: 5,
+                        backgroundColor: const Color(0xFFE5E7EB),
+                        valueColor: AlwaysStoppedAnimation<Color>(item.accent),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Time Remaining',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF6B7280),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: item.timeProgress,
+                        minHeight: 5,
+                        backgroundColor: const Color(0xFFFFF1D6),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          Color(0xFFF59E0B),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(width: 10),
-              Text(
-                item.progressText,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: item.accent,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    item.progressText,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: item.accent,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    item.timeProgressText,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFFF59E0B),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:managementt/admin/project_dashboard.dart';
 import 'package:managementt/admin/project_detail_page.dart';
 import 'package:managementt/components/app_colors.dart';
+import 'package:managementt/components/date_time_helper.dart';
 import 'package:managementt/components/app_render_entrance.dart';
 import 'package:managementt/components/dashboard_tiles.dart';
 import 'package:managementt/components/donut_chart.dart';
@@ -382,6 +383,10 @@ class AdminDashboard extends StatelessWidget {
                       dueText: dc.formatDeadline(project.deadLine),
                       status: '${project.completedTask}/$totalSub tasks',
                       progress: project.progress / 100.0,
+                      timeProgress: DateTimeHelper.remainingTimeRatio(
+                        project.startDate,
+                        project.deadLine,
+                      ),
                       teamMembers: [dc.getMemberInitials(project.ownerId)],
                       accentColor: dc.projectAccent(project),
                       onTap: () {

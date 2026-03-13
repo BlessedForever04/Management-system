@@ -20,6 +20,7 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController memberSearchController = TextEditingController();
+  final TextEditingController contributionController = TextEditingController();
   final priorityController = ''.obs;
   final selectedMemberId = ''.obs;
   final memberSearchQuery = ''.obs;
@@ -37,7 +38,7 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
   late final Animation<double> _headerFade;
   late final Animation<Offset> _headerSlide;
   late final Animation<double> _cardSlide;
-  // 7 items: title, description, type, priority, dates, member, button
+  // Animated form fields. Task-in-project flow uses one extra contribution field.
   late final List<Animation<double>> _fieldFades;
   late final List<Animation<Offset>> _fieldSlides;
   late final Animation<double> _pulseScale;
@@ -81,7 +82,7 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
       ),
     );
 
-    _fieldFades = List.generate(6, (i) {
+    _fieldFades = List.generate(7, (i) {
       final start = 0.3 + (i * 0.08);
       final end = (start + 0.14).clamp(0.0, 1.0);
       return Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -91,7 +92,7 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
         ),
       );
     });
-    _fieldSlides = List.generate(6, (i) {
+    _fieldSlides = List.generate(7, (i) {
       final start = 0.3 + (i * 0.08);
       final end = (start + 0.14).clamp(0.0, 1.0);
       return Tween<Offset>(
@@ -113,6 +114,13 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
+    if (_taskController.tasks.isEmpty && !_taskController.isLoading.value) {
+      _taskController.getAllTask();
+    }
+    if (_isProjectTask) {
+      Future.microtask(() => _taskController.getAllTask());
+    }
+
     _staggerController.forward();
   }
 
@@ -125,8 +133,25 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
     titleController.dispose();
     descriptionController.dispose();
     memberSearchController.dispose();
+    contributionController.dispose();
     super.dispose();
   }
+
+  bool get _isProjectTask =>
+      widget.defaultType.toUpperCase() == 'TASK' &&
+      widget.parentTaskId != null &&
+      widget.parentTaskId!.isNotEmpty;
+
+  int get _assignedContribution {
+    final parentId = widget.parentTaskId;
+    if (parentId == null || parentId.isEmpty) return 0;
+    return _taskController.tasks
+        .where((task) => (task.type ?? '').toUpperCase() == 'TASK')
+        .where((task) => task.parentTaskId == parentId)
+        .fold<int>(0, (sum, task) => sum + task.contributionPercent);
+  }
+
+  int get _remainingContribution => math.max(0, 100 - _assignedContribution);
 
   @override
   Widget build(BuildContext context) {
@@ -221,7 +246,9 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            "Assign work and set priorities for your team",
+                            _isProjectTask
+                                ? "Assign work and distribute the remaining project contribution"
+                                : "Assign work and set priorities for your team",
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.7),
                               fontSize: 14,
@@ -340,9 +367,83 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
                             ),
                             const SizedBox(height: 20),
 
+                            if (_isProjectTask) ...[
+                              _animatedField(
+                                3,
+                                Obx(
+                                  () => Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      _buildLabel("Project Contribution"),
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.all(14),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF8F9FC),
+                                          borderRadius: BorderRadius.circular(
+                                            14,
+                                          ),
+                                          border: Border.all(
+                                            color: AppColors.primary.withValues(
+                                              alpha: 0.12,
+                                            ),
+                                          ),
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons
+                                                      .pie_chart_outline_rounded,
+                                                  color: AppColors.primary,
+                                                  size: 18,
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  'Remaining to assign: $_remainingContribution%',
+                                                  style: const TextStyle(
+                                                    color: Color(0xFF1F2937),
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 6),
+                                            Text(
+                                              'Assigned: $_assignedContribution% of 100%',
+                                              style: const TextStyle(
+                                                color: AppColors.textSecondary,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 12),
+                                            _buildTextField(
+                                              controller:
+                                                  contributionController,
+                                              hint: 'Enter contribution %',
+                                              icon: Icons.percent_rounded,
+                                              keyboardType:
+                                                  TextInputType.number,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                            ],
+
                             // Deadline
                             _animatedField(
-                              3,
+                              _isProjectTask ? 4 : 3,
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -362,7 +463,7 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
 
                             // Member selector
                             _animatedField(
-                              4,
+                              _isProjectTask ? 5 : 4,
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -489,7 +590,7 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
 
                             // Submit button
                             _animatedField(
-                              5,
+                              _isProjectTask ? 6 : 5,
                               Obx(() {
                                 if (_taskController.isLoading.value) {
                                   return const Center(
@@ -633,10 +734,12 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
     required String hint,
     required IconData icon,
     int maxLines = 1,
+    TextInputType? keyboardType,
   }) {
     return TextField(
       controller: controller,
       maxLines: maxLines,
+      keyboardType: keyboardType,
       style: const TextStyle(fontSize: 15),
       decoration: InputDecoration(
         hintText: hint,
@@ -869,6 +972,8 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
   }
 
   void _handleSubmit() async {
+    final contributionValue = int.tryParse(contributionController.text.trim());
+
     if (titleController.text.isEmpty ||
         descriptionController.text.isEmpty ||
         selectedMemberId.value.isEmpty ||
@@ -884,7 +989,36 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
       );
       return;
     }
-    await _taskController.addTask(
+
+    if (_isProjectTask) {
+      if (contributionValue == null || contributionValue <= 0) {
+        Get.snackbar(
+          "Error",
+          "Enter a valid contribution percentage",
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+          margin: const EdgeInsets.all(12),
+          borderRadius: 10,
+        );
+        return;
+      }
+
+      if (contributionValue > _remainingContribution) {
+        Get.snackbar(
+          "Error",
+          "Only $_remainingContribution% contribution is remaining for this project",
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+          margin: const EdgeInsets.all(12),
+          borderRadius: 10,
+        );
+        return;
+      }
+    }
+
+    final isCreated = await _taskController.addTask(
       Task(
         title: titleController.text,
         description: descriptionController.text,
@@ -893,10 +1027,14 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
         status: 'NOT_STARTED',
         ownerId: selectedMemberId.value,
         parentTaskId: widget.parentTaskId,
+        contributionPercent: _isProjectTask ? (contributionValue ?? 0) : 0,
         deadLine: selectedDeadline.value,
         startDate: DateTime.now(),
       ),
     );
+    if (!isCreated) {
+      return;
+    }
     await _memberController.getMembers();
     Get.back();
   }

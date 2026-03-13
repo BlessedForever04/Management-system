@@ -7,6 +7,9 @@ class ProjectCard extends StatelessWidget {
   final String? dueText;
   final String? status;
   final double progress;
+  final double? timeProgress;
+  final String progressLabel;
+  final String timeLabel;
   final List<String> teamMembers;
   final Color accentColor;
   final VoidCallback? onTap;
@@ -18,6 +21,9 @@ class ProjectCard extends StatelessWidget {
     this.dueText,
     this.status,
     this.progress = 0.55,
+    this.timeProgress,
+    this.progressLabel = 'Project Progress',
+    this.timeLabel = 'Time Remaining',
     this.teamMembers = const ['A', 'R', 'K'],
     this.accentColor = const Color(0xFF2F59F7),
     this.onTap,
@@ -26,6 +32,7 @@ class ProjectCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final normalizedProgress = progress.clamp(0.0, 1.0);
+    final normalizedTimeProgress = timeProgress?.clamp(0.0, 1.0);
     final visibleMembers = teamMembers.take(4).toList();
     final avatarStackWidth = visibleMembers.isEmpty
         ? 0.0
@@ -109,13 +116,20 @@ class ProjectCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            LinearProgressIndicator(
+            _ProgressTrack(
+              label: progressLabel,
               value: normalizedProgress,
-              minHeight: 4,
-              borderRadius: BorderRadius.circular(8),
-              backgroundColor: const Color(0xFFE8EAF7),
-              valueColor: AlwaysStoppedAnimation<Color>(accentColor),
+              color: accentColor,
             ),
+            if (normalizedTimeProgress != null) ...[
+              const SizedBox(height: 6),
+              _ProgressTrack(
+                label: timeLabel,
+                value: normalizedTimeProgress,
+                color: const Color(0xFFF59E0B),
+                backgroundColor: const Color(0xFFFFF1D6),
+              ),
+            ],
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -187,6 +201,58 @@ class ProjectCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ProgressTrack extends StatelessWidget {
+  final String label;
+  final double value;
+  final Color color;
+  final Color backgroundColor;
+
+  const _ProgressTrack({
+    required this.label,
+    required this.value,
+    required this.color,
+    this.backgroundColor = const Color(0xFFE8EAF7),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: Colors.blueGrey.withValues(alpha: 0.9),
+              ),
+            ),
+            const Spacer(),
+            Text(
+              '${(value * 100).toStringAsFixed(0)}%',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        LinearProgressIndicator(
+          value: value,
+          minHeight: 4,
+          borderRadius: BorderRadius.circular(8),
+          backgroundColor: backgroundColor,
+          valueColor: AlwaysStoppedAnimation<Color>(color),
+        ),
+      ],
     );
   }
 }

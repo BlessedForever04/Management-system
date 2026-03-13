@@ -111,6 +111,17 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     return DateTimeHelper.remainingDaysLabel(d);
   }
 
+  int get _assignedContribution {
+    final parentId = widget.project.id;
+    if (parentId == null || parentId.isEmpty) return 0;
+    return _taskController.tasks
+        .where((t) => (t.type ?? '').toUpperCase() == 'TASK')
+        .where((t) => t.parentTaskId == parentId)
+        .fold<int>(0, (sum, t) => sum + t.contributionPercent);
+  }
+
+  int get _remainingContribution => (100 - _assignedContribution).clamp(0, 100);
+
   String _dateShort(DateTime? d) {
     if (d == null) return '-';
     const months = [
@@ -178,6 +189,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
       project.startDate,
       project.deadLine,
     );
+    final projectProgress = (project.progress / 100).clamp(0.0, 1.0);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -319,6 +331,43 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                             borderRadius: BorderRadius.circular(999),
                             child: LinearProgressIndicator(
                               minHeight: 10,
+                              value: projectProgress,
+                              backgroundColor: Colors.white.withValues(
+                                alpha: 0.2,
+                              ),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.stripColor(
+                                  priority: project.priority,
+                                  status: project.status,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Text(
+                                'Project Progress',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.88),
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                '${project.progress}%',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(999),
+                            child: LinearProgressIndicator(
+                              minHeight: 10,
                               value: remainingTimeProgress,
                               backgroundColor: Colors.white.withValues(
                                 alpha: 0.35,
@@ -347,6 +396,18 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                                 ),
                               ),
                             ],
+                          ),
+                          const SizedBox(height: 12),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Contribution remaining to assign: $_remainingContribution%',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.88),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 10),
                           Row(
@@ -788,6 +849,12 @@ class _TaskCard extends StatelessWidget {
                             text: '#${task.priority}',
                             bg: const Color(0xFFEEF2FF),
                             fg: const Color(0xFF4F46E5),
+                          ),
+                          _Badge(
+                            text: '${task.contributionPercent}% contribution',
+                            bg: const Color(0xFFE8FFF2),
+                            fg: const Color(0xFF119C63),
+                            icon: Icons.pie_chart_outline_rounded,
                           ),
                         ],
                       ),

@@ -5,6 +5,7 @@ import 'package:managementt/admin/add_task.dart';
 import 'package:managementt/admin/project_detail_page.dart';
 import 'package:managementt/components/app_confirm_dialog.dart';
 import 'package:managementt/components/app_colors.dart';
+import 'package:managementt/components/date_time_helper.dart';
 import 'package:managementt/components/app_render_entrance.dart';
 import 'package:managementt/components/project_card.dart';
 import 'package:managementt/controller/dashboard_controller.dart';
@@ -274,6 +275,10 @@ class ProjectDashboard extends StatelessWidget {
                               ? '${task.completedTask}/$totalSub tasks'
                               : null,
                           progress: task.progress / 100.0,
+                          timeProgress: DateTimeHelper.remainingTimeRatio(
+                            task.startDate,
+                            task.deadLine,
+                          ),
                           teamMembers: [ownerInitials],
                           accentColor: dc.projectAccent(task),
                           onTap: () {

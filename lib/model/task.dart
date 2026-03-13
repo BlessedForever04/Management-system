@@ -8,6 +8,7 @@ class Task {
   String ownerId;
   String? parentTaskId;
   int progress; // 0-100
+  int contributionPercent;
   String? remark;
   DateTime? deadLine;
   DateTime? startDate;
@@ -24,6 +25,7 @@ class Task {
     required this.ownerId,
     this.parentTaskId,
     this.progress = 0,
+    this.contributionPercent = 0,
     this.remark,
     this.deadLine,
     this.startDate,
@@ -34,6 +36,10 @@ class Task {
   factory Task.fromJson(Map<String, dynamic> json) {
     final rawDeadline = json['deadLine'] ?? json['deadline'];
     final rawStartDate = json['startDate'] ?? json['start_date'];
+    final rawContribution =
+        json['contributionPercent'] ??
+        json['contribution'] ??
+        json['contribution_percentage'];
 
     return Task(
       id: json['id'],
@@ -45,6 +51,9 @@ class Task {
       ownerId: json['ownerId'] ?? '',
       parentTaskId: json['parentTaskId'],
       progress: json['progress'] ?? 0,
+      contributionPercent: rawContribution is num
+          ? rawContribution.toInt()
+          : int.tryParse(rawContribution?.toString() ?? '') ?? 0,
       remark: json['remark'],
       deadLine: rawDeadline != null
           ? DateTime.tryParse(rawDeadline.toString())
@@ -71,6 +80,8 @@ class Task {
       "ownerId": ownerId,
       "parentTaskId": parentTaskId,
       "progress": progress,
+      "contributionPercent": contributionPercent,
+      "contribution": contributionPercent,
       "remark": remark,
       // Send both keys to stay compatible with current and legacy backend field names.
       "deadline": deadlineValue,
