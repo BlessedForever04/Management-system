@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:managementt/components/app_colors.dart';
 
 class PriorityBreakdown extends StatelessWidget {
   final int highCount;
@@ -64,19 +65,19 @@ class PriorityBreakdown extends StatelessWidget {
                     _PriorityItem(
                       label: 'High',
                       count: highCount,
-                      color: Colors.red,
+                      color: AppColors.priorityHigh,
                     ),
                     const SizedBox(height: 12),
                     _PriorityItem(
                       label: 'Medium',
                       count: mediumCount,
-                      color: Colors.orange,
+                      color: AppColors.priorityMedium,
                     ),
                     const SizedBox(height: 12),
                     _PriorityItem(
                       label: 'Low',
                       count: lowCount,
-                      color: Colors.teal,
+                      color: AppColors.priorityLow,
                     ),
                   ],
                 ),
@@ -141,17 +142,17 @@ class _DonutPainter extends CustomPainter {
     double startAngle = -pi / 2;
 
     final highAngle = (high / total) * 2 * pi;
-    paint.color = Colors.red;
+    paint.color = AppColors.priorityHigh;
     canvas.drawArc(rect, startAngle, highAngle, false, paint);
     startAngle += highAngle;
 
     final mediumAngle = (medium / total) * 2 * pi;
-    paint.color = Colors.orange;
+    paint.color = AppColors.priorityMedium;
     canvas.drawArc(rect, startAngle, mediumAngle, false, paint);
     startAngle += mediumAngle;
 
     final lowAngle = (low / total) * 2 * pi;
-    paint.color = Colors.teal;
+    paint.color = AppColors.priorityLow;
     canvas.drawArc(rect, startAngle, lowAngle, false, paint);
   }
 

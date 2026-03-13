@@ -267,7 +267,7 @@ class ProjectDashboard extends StatelessWidget {
                             : null,
                         progress: task.progress / 100.0,
                         teamMembers: [ownerInitials],
-                        accentColor: dc.projectAccent(index),
+                        accentColor: dc.projectAccent(task),
                         onTap: () {
                           Get.to(() => TaskDetailPage(), arguments: task);
                         },

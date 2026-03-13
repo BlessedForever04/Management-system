@@ -269,15 +269,8 @@ class DashboardController extends GetxController {
     }).toList();
   }
 
-  static const _projectAccents = [
-    AppColors.projectBlue,
-    AppColors.projectTeal,
-    AppColors.projectPink,
-    AppColors.projectPurple,
-  ];
-
-  Color projectAccent(int index) {
-    return _projectAccents[index % _projectAccents.length];
+  Color projectAccent(Task item) {
+    return AppColors.stripColor(priority: item.priority, status: item.status);
   }
 
   // ── Analytics computed properties ──

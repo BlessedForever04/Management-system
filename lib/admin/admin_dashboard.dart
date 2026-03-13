@@ -367,7 +367,7 @@ class AdminDashboard extends StatelessWidget {
                     status: '${project.completedTask}/$totalSub tasks',
                     progress: project.progress / 100.0,
                     teamMembers: [dc.getMemberInitials(project.ownerId)],
-                    accentColor: dc.projectAccent(i),
+                    accentColor: dc.projectAccent(project),
                   ),
                 );
               }),

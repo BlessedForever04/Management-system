@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:managementt/components/app_colors.dart';
 import 'package:managementt/controller/admin_nav_controller.dart';
 import 'package:managementt/controller/auth_controller.dart';
 import 'package:managementt/controller/profile_controller.dart';
@@ -24,7 +25,7 @@ class MemberProfilePage extends StatelessWidget {
 
           switch (t.status) {
             case 'DONE':
-              statusColor = const Color(0xFF22C55E);
+              statusColor = AppColors.completed;
               statusLabel = 'Done';
               break;
             case 'TODO':
@@ -66,7 +67,10 @@ class MemberProfilePage extends StatelessWidget {
             project: t.description,
             status: statusLabel,
             due: dueText,
-            accent: const Color(0xFFE91E63),
+            accent: AppColors.stripColor(
+              priority: t.priority,
+              status: t.status,
+            ),
             statusColor: statusColor,
             isCompleted: isCompleted,
           );
@@ -494,8 +498,9 @@ class MemberProfilePage extends StatelessWidget {
                                               dueText: _formatDeadline(
                                                 p.deadLine,
                                               ),
-                                              accent: _projectColor(
-                                                pc.memberProjects.indexOf(p),
+                                              accent: AppColors.stripColor(
+                                                priority: p.priority,
+                                                status: p.status,
                                               ),
                                               dueColor: _deadlineColor(
                                                 p.deadLine,
@@ -555,17 +560,6 @@ class MemberProfilePage extends StatelessWidget {
     final diff = deadline.difference(today).inDays;
     if (diff < 0) return const Color(0xFFFF4D57);
     return const Color(0xFF10B981);
-  }
-
-  static const _projectColors = [
-    Color(0xFF2F59F7),
-    Color(0xFF0FA885),
-    Color(0xFF8B5CF6),
-    Color(0xFFE91E63),
-  ];
-
-  static Color _projectColor(int index) {
-    return _projectColors[index % _projectColors.length];
   }
 }
 

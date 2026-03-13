@@ -17,6 +17,12 @@ class AppColors {
   static const Color error = Color(0xFFFF4D57);
   static const Color info = Color(0xFF3B82F6);
 
+  // Priority / strip colors
+  static const Color priorityHigh = Color(0xFFEF4444);
+  static const Color priorityMedium = Color(0xFFEAB308);
+  static const Color priorityLow = Color(0xFF3B82F6);
+  static const Color completed = success;
+
   // Project accents
   static const Color projectBlue = Color(0xFF2F59F7);
   static const Color projectTeal = Color(0xFF0FA885);
@@ -40,4 +46,29 @@ class AppColors {
     Color(0xFF10B981),
     Color(0xFF3B82F6),
   ];
+
+  static bool isCompletedStatus(String? status) {
+    final s = (status ?? '').trim().toUpperCase();
+    return s == 'DONE' || s == 'COMPLETED';
+  }
+
+  static Color priorityColor(String? priority) {
+    switch ((priority ?? '').trim().toLowerCase()) {
+      case 'high':
+        return priorityHigh;
+      case 'medium':
+        return priorityMedium;
+      case 'low':
+        return priorityLow;
+      default:
+        return priorityLow;
+    }
+  }
+
+  static Color stripColor({String? priority, String? status}) {
+    if (isCompletedStatus(status)) {
+      return completed;
+    }
+    return priorityColor(priority);
+  }
 }
