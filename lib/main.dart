@@ -9,6 +9,7 @@ import 'package:managementt/controller/member_controller.dart';
 import 'package:managementt/controller/profile_controller.dart';
 import 'package:managementt/controller/task_controller.dart';
 import 'package:managementt/login_page.dart';
+import 'package:managementt/members/user_wrapper.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -82,7 +83,11 @@ class SplashScreen extends StatelessWidget {
       if (auth.role.value == 'ADMIN') {
         return AdminWrapper();
       } else {
-        return AdminWrapper();
+        if (auth.role.value == 'USER') {
+          return UserWrapper();
+        } else {
+          return LoginPage();
+        }
       }
     });
   }

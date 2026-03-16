@@ -2,7 +2,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
 import 'package:managementt/admin/admin_wrapper.dart';
 import 'package:managementt/login_page.dart';
-import 'package:managementt/members/member_dashboard.dart';
+import 'package:managementt/members/user_wrapper.dart';
 import 'package:managementt/model/auth_response.dart';
 
 class AuthController extends GetxController {
@@ -102,7 +102,7 @@ class AuthController extends GetxController {
     if (role.value == 'ADMIN') {
       Get.offAll(() => AdminWrapper());
     } else {
-      Get.offAll(() => MemberDashboard());
+      Get.offAll(() => UserWrapper());
     }
   }
 }

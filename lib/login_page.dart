@@ -8,7 +8,7 @@ import 'package:managementt/service/auth_service.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({super.key});
-  final TextEditingController userIdController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final AuthService _authService = AuthService();
   final _isLoading = false.obs;
@@ -96,7 +96,7 @@ class LoginPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 40),
                       AppTextfield(
-                        controller: userIdController,
+                        controller: emailController,
                         label: "Email",
                       ),
                       const SizedBox(height: 20),
@@ -112,9 +112,8 @@ class LoginPage extends StatelessWidget {
                                 text: "Login",
                                 buttonColor: AppColors.primaryBlue,
                                 onPressed: () async {
-                                  final email = userIdController.text.trim();
-                                  final password = passwordController.text
-                                      .trim();
+                                  final email = emailController.text.trim();
+                                  final password = passwordController.text.trim();
 
                                   if (email.isEmpty || password.isEmpty) {
                                     Get.snackbar(
@@ -127,8 +126,7 @@ class LoginPage extends StatelessWidget {
 
                                   _isLoading.value = true;
                                   try {
-                                    final authResponse = await _authService
-                                        .login(email, password);
+                                    final authResponse = await _authService.login(email, password);
                                     await AuthController.to.setAuthData(
                                       authResponse,
                                       loginUsername: email,
