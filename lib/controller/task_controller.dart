@@ -119,4 +119,52 @@ class TaskController extends GetxController {
       Get.snackbar('Error', 'Failed to remove task: $e');
     }
   }
+
+  Future<bool> submitTaskForReview({
+    required String taskId,
+    required String actorId,
+    required String actorRole,
+  }) async {
+    isLoading.value = true;
+    try {
+      await _taskService.transitionTaskStatus(
+        taskId,
+        'REVIEW',
+        actorId: actorId,
+        actorRole: actorRole,
+      );
+      await getAllTask();
+      _refreshRelated();
+      return true;
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to submit for review: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<bool> approveTaskCompletion({
+    required String taskId,
+    required String actorId,
+    required String actorRole,
+  }) async {
+    isLoading.value = true;
+    try {
+      await _taskService.transitionTaskStatus(
+        taskId,
+        'DONE',
+        actorId: actorId,
+        actorRole: actorRole,
+      );
+      await getAllTask();
+      _refreshRelated();
+      return true;
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to approve completion: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
 }

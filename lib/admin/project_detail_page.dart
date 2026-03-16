@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:managementt/admin/add_task.dart';
 import 'package:managementt/components/app_colors.dart';
 import 'package:managementt/components/date_time_helper.dart';
+import 'package:managementt/controller/auth_controller.dart';
 import 'package:managementt/controller/member_controller.dart';
 import 'package:managementt/controller/task_controller.dart';
 import 'package:managementt/model/task.dart';
@@ -25,6 +26,41 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   final TaskController _taskController = Get.find<TaskController>();
   final MemberController _memberController = Get.find<MemberController>();
   final RxString _selectedFilter = 'ALL'.obs;
+
+  Future<void> _approveTask(Task task) async {
+    final taskId = task.id;
+    if (taskId == null || taskId.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Task id is missing. Please refresh and try again.',
+        backgroundColor: AppColors.error,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    final role = AuthController.to.role.value;
+    final actorId = role == 'ADMIN'
+        ? AuthController.to.currentUserId.value
+        : (AuthController.to.currentUserId.value.isNotEmpty
+              ? AuthController.to.currentUserId.value
+              : widget.project.ownerId);
+
+    final ok = await _taskController.approveTaskCompletion(
+      taskId: taskId,
+      actorId: actorId,
+      actorRole: role,
+    );
+
+    if (ok) {
+      Get.snackbar(
+        'Approved',
+        'Task marked as done after review.',
+        backgroundColor: AppColors.success,
+        colorText: Colors.white,
+      );
+    }
+  }
 
   @override
   void initState() {
@@ -637,6 +673,10 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                             task: t,
                             deadlineText: _deadlineText(t.deadLine),
                             ownerName: _memberNameById(t.ownerId),
+                            onApprove:
+                                (t.status ?? '').toUpperCase() == 'REVIEW'
+                                ? () => _approveTask(t)
+                                : null,
                           ),
                         )
                         .toList(),
@@ -743,11 +783,13 @@ class _TaskCard extends StatelessWidget {
   final Task task;
   final String deadlineText;
   final String ownerName;
+  final VoidCallback? onApprove;
 
   const _TaskCard({
     required this.task,
     required this.deadlineText,
     required this.ownerName,
+    this.onApprove,
   });
 
   @override
@@ -870,6 +912,33 @@ class _TaskCard extends StatelessWidget {
                           ),
                         ],
                       ),
+                      if (onApprove != null) ...[
+                        const SizedBox(height: 10),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: ElevatedButton.icon(
+                            onPressed: onApprove,
+                            icon: const Icon(Icons.verified_rounded, size: 16),
+                            label: const Text('Approve Done'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF166534),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

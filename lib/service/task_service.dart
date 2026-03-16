@@ -74,6 +74,27 @@ class TaskService {
     }
   }
 
+  Future<void> transitionTaskStatus(
+    String id,
+    String status, {
+    required String actorId,
+    required String actorRole,
+  }) async {
+    final encodedActorId = Uri.encodeComponent(actorId);
+    final encodedRole = Uri.encodeComponent(actorRole);
+    final response = await _api.put(
+      '/tasks/$id/status/transition/$status?actorId=$encodedActorId&actorRole=$encodedRole',
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(
+        response.body.isNotEmpty
+            ? response.body
+            : 'Failed to transition task status',
+      );
+    }
+  }
+
   /// Get total count of tasks by type.
   Future<int> getTaskCountByType(String type) async {
     final response = await _api.get('/tasks/TaskCount/$type');

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:managementt/admin/add_task.dart';
 import 'package:managementt/components/app_colors.dart';
+import 'package:managementt/controller/auth_controller.dart';
+import 'package:managementt/controller/task_controller.dart';
 import 'package:managementt/model/task.dart';
 
 class UserTaskDetailPage extends StatefulWidget {
@@ -13,6 +16,79 @@ class UserTaskDetailPage extends StatefulWidget {
 }
 
 class _UserTaskDetailPageState extends State<UserTaskDetailPage> {
+  final TaskController _taskController = Get.find<TaskController>();
+
+  Future<void> _convertTaskToProjectAndAddSubtasks() async {
+    final taskId = widget.task.id;
+    if (taskId == null || taskId.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Task id is missing. Please refresh and try again.',
+        backgroundColor: AppColors.error,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    final alreadyProject = (widget.task.type ?? '').toUpperCase() == 'PROJECT';
+
+    if (!alreadyProject) {
+      final evolvedTask = Task(
+        id: widget.task.id,
+        title: widget.task.title,
+        description: widget.task.description,
+        priority: widget.task.priority,
+        type: 'PROJECT',
+        status: widget.task.status,
+        ownerId: widget.task.ownerId,
+        parentTaskId: widget.task.parentTaskId,
+        progress: widget.task.progress,
+        contributionPercent: 0,
+        remark: widget.task.remark,
+        deadLine: widget.task.deadLine,
+        startDate: widget.task.startDate,
+        remainingTask: widget.task.remainingTask,
+        completedTask: widget.task.completedTask,
+      );
+
+      await _taskController.updateTask(taskId, evolvedTask);
+      await _taskController.getAllTask();
+    }
+
+    Get.to(() => AddTask(defaultType: 'TASK', parentTaskId: taskId));
+  }
+
+  Future<void> _submitForReview() async {
+    final taskId = widget.task.id;
+    if (taskId == null || taskId.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Task id is missing. Please refresh and try again.',
+        backgroundColor: AppColors.error,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    final ok = await _taskController.submitTaskForReview(
+      taskId: taskId,
+      actorId: widget.task.ownerId,
+      actorRole: AuthController.to.role.value,
+    );
+
+    if (ok) {
+      setState(() {
+        widget.task.status = 'REVIEW';
+      });
+      Get.snackbar(
+        'Submitted',
+        'Task submitted for project-owner review.',
+        backgroundColor: AppColors.success,
+        colorText: Colors.white,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final topPad = MediaQuery.of(context).padding.top;
@@ -240,14 +316,8 @@ class _UserTaskDetailPageState extends State<UserTaskDetailPage> {
                     children: [
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: () {
-                            // Add subtask action
-                            Get.snackbar(
-                              'Info',
-                              'Convert to project by adding subtasks',
-                              backgroundColor: AppColors.primary,
-                              colorText: Colors.white,
-                            );
+                          onPressed: () async {
+                            await _convertTaskToProjectAndAddSubtasks();
                           },
                           icon: const Icon(Icons.add_task_rounded, size: 18),
                           label: const Text('Add Subtasks'),
@@ -262,6 +332,29 @@ class _UserTaskDetailPageState extends State<UserTaskDetailPage> {
                           ),
                         ),
                       ),
+                      if ((task.type ?? '').toUpperCase() == 'TASK' &&
+                          !AppColors.isCompletedStatus(task.status) &&
+                          (task.status ?? '').toUpperCase() != 'REVIEW') ...[
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () async {
+                              await _submitForReview();
+                            },
+                            icon: const Icon(Icons.rule_rounded, size: 18),
+                            label: const Text('Submit Review'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0F766E),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -285,9 +378,7 @@ class _UserTaskDetailPageState extends State<UserTaskDetailPage> {
                       child: Text(
                         'Subtasks will appear here once added',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                        ),
+                        style: TextStyle(color: AppColors.textSecondary),
                       ),
                     ),
                   ),
