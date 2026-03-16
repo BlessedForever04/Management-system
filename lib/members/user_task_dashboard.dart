@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managementt/components/app_colors.dart';
 import 'package:managementt/components/app_render_entrance.dart';
+import 'package:managementt/model/filter_enums.dart';
 import 'package:managementt/controller/user_dashboard_controller.dart';
 import 'package:managementt/members/user_task_detail_page.dart';
 
@@ -30,6 +31,8 @@ class UserTaskDashboard extends StatefulWidget {
 class _UserTaskDashboardState extends State<UserTaskDashboard> {
   late TextEditingController searchController;
   final searchQuery = ''.obs;
+  final statusFilter = TaskStatusFilter.all.obs;
+  final priorityFilter = PriorityFilter.all.obs;
 
   @override
   void initState() {
@@ -161,6 +164,63 @@ class _UserTaskDashboardState extends State<UserTaskDashboard> {
                         style: const TextStyle(color: Colors.white),
                       ),
                     ),
+
+                    const SizedBox(height: 12),
+
+                    /// STATUS FILTERS
+                    Obx(() {
+                      final selected = statusFilter.value;
+                      return SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _FilterChip(
+                              label: 'All',
+                              isSelected: selected == TaskStatusFilter.all,
+                              onTap: () =>
+                                  statusFilter.value = TaskStatusFilter.all,
+                            ),
+                            const SizedBox(width: 8),
+                            _FilterChip(
+                              label: 'Todo',
+                              isSelected: selected == TaskStatusFilter.todo,
+                              onTap: () =>
+                                  statusFilter.value = TaskStatusFilter.todo,
+                            ),
+                            const SizedBox(width: 8),
+                            _FilterChip(
+                              label: 'In Progress',
+                              isSelected:
+                                  selected == TaskStatusFilter.inProgress,
+                              onTap: () => statusFilter.value =
+                                  TaskStatusFilter.inProgress,
+                            ),
+                            const SizedBox(width: 8),
+                            _FilterChip(
+                              label: 'Under Review',
+                              isSelected:
+                                  selected == TaskStatusFilter.underReview,
+                              onTap: () => statusFilter.value =
+                                  TaskStatusFilter.underReview,
+                            ),
+                            const SizedBox(width: 8),
+                            _FilterChip(
+                              label: 'Done',
+                              isSelected: selected == TaskStatusFilter.done,
+                              onTap: () =>
+                                  statusFilter.value = TaskStatusFilter.done,
+                            ),
+                            const SizedBox(width: 8),
+                            _FilterChip(
+                              label: 'Overdue',
+                              isSelected: selected == TaskStatusFilter.overdue,
+                              onTap: () =>
+                                  statusFilter.value = TaskStatusFilter.overdue,
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
                   ],
                 ),
               ),
@@ -178,14 +238,36 @@ class _UserTaskDashboardState extends State<UserTaskDashboard> {
                     );
                   }
 
-                  final tasks = dc.tasks;
+                  var filtered = dc.tasks.toList();
 
+                  // Apply status filter
+                  if (statusFilter.value != TaskStatusFilter.all) {
+                    filtered = filtered.where((task) {
+                      final status = (task.status ?? '').toUpperCase();
+                      switch (statusFilter.value) {
+                        case TaskStatusFilter.todo:
+                          return status == 'NOT_STARTED' || status == 'TODO';
+                        case TaskStatusFilter.inProgress:
+                          return status == 'IN_PROGRESS';
+                        case TaskStatusFilter.underReview:
+                          return status == 'REVIEW';
+                        case TaskStatusFilter.done:
+                          return status == 'DONE' || status == 'COMPLETED';
+                        case TaskStatusFilter.overdue:
+                          return status == 'OVERDUE';
+                        default:
+                          return true;
+                      }
+                    }).toList();
+                  }
+
+                  // Apply search query
                   final query = searchQuery.value.trim().toLowerCase();
-                  final filtered = query.isEmpty
-                      ? tasks
-                      : tasks
-                            .where((t) => t.title.toLowerCase().contains(query))
-                            .toList();
+                  if (query.isNotEmpty) {
+                    filtered = filtered
+                        .where((t) => t.title.toLowerCase().contains(query))
+                        .toList();
+                  }
 
                   if (filtered.isEmpty) {
                     return Padding(
@@ -227,9 +309,7 @@ class _UserTaskDashboardState extends State<UserTaskDashboard> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: const Color(0xFFE5E7EB),
-                          ),
+                          border: Border.all(color: const Color(0xFFE5E7EB)),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.04),
@@ -267,10 +347,11 @@ class _UserTaskDashboardState extends State<UserTaskDashboard> {
                                       width: 28,
                                       height: 28,
                                       decoration: BoxDecoration(
-                                        color: (isDone
-                                                ? AppColors.completed
-                                                : strip)
-                                            .withValues(alpha: 0.12),
+                                        color:
+                                            (isDone
+                                                    ? AppColors.completed
+                                                    : strip)
+                                                .withValues(alpha: 0.12),
                                         shape: BoxShape.circle,
                                       ),
                                       child: Icon(
@@ -300,8 +381,9 @@ class _UserTaskDashboardState extends State<UserTaskDashboard> {
                                               decoration: isDone
                                                   ? TextDecoration.lineThrough
                                                   : TextDecoration.none,
-                                              decorationColor:
-                                                  const Color(0xFF9CA3AF),
+                                              decorationColor: const Color(
+                                                0xFF9CA3AF,
+                                              ),
                                               decorationThickness: 2,
                                             ),
                                           ),
@@ -324,12 +406,15 @@ class _UserTaskDashboardState extends State<UserTaskDashboard> {
                                               _Badge(
                                                 text: isDone
                                                     ? 'Done'
-                                                    : _statusLabel(
-                                                        task.status),
-                                                bg: (isDone
-                                                        ? AppColors.completed
-                                                        : strip)
-                                                    .withValues(alpha: 0.12),
+                                                    : _statusLabel(task.status),
+                                                bg:
+                                                    (isDone
+                                                            ? AppColors
+                                                                  .completed
+                                                            : strip)
+                                                        .withValues(
+                                                          alpha: 0.12,
+                                                        ),
                                                 fg: isDone
                                                     ? AppColors.completed
                                                     : strip,
@@ -431,6 +516,47 @@ class _StatChip extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _FilterChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? Colors.white
+              : Colors.white.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? Colors.white
+                : Colors.white.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? const Color(0xFF4338CA) : Colors.white,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
     );
   }

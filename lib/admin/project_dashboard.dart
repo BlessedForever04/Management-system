@@ -12,6 +12,7 @@ import 'package:managementt/components/project_card.dart';
 import 'package:managementt/controller/dashboard_controller.dart';
 import 'package:managementt/controller/task_controller.dart';
 import 'package:managementt/controller/project_pagination_controller.dart';
+import 'package:managementt/model/filter_enums.dart';
 
 const _months = [
   'Jan',
@@ -43,12 +44,22 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
   @override
   void initState() {
     super.initState();
-    paginationController = Get.put(ProjectPaginationController());
+    paginationController = Get.isRegistered<ProjectPaginationController>()
+        ? Get.find<ProjectPaginationController>()
+        : Get.put(ProjectPaginationController());
+    paginationController.updateStatusFilter(ProjectStatusFilter.all);
+    paginationController.updatePriorityFilter(PriorityFilter.all);
+    paginationController.updateSearchQuery('');
+    // Force fresh load on entry to avoid stale/empty cached pagination state.
+    paginationController.resetPagination();
+    paginationController.loadNextPage();
   }
 
   @override
   void dispose() {
-    paginationController.dispose();
+    if (Get.isRegistered<ProjectPaginationController>()) {
+      Get.delete<ProjectPaginationController>();
+    }
     super.dispose();
   }
 
@@ -67,7 +78,7 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
         child: RefreshIndicator(
           onRefresh: () async {
             paginationController.resetPagination();
-            await Future.delayed(const Duration(milliseconds: 500));
+            await paginationController.loadNextPage();
           },
           child: CustomScrollView(
             controller: paginationController.scrollController,
@@ -76,7 +87,7 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
               SliverAppBar(
                 pinned: true,
                 floating: false,
-                expandedHeight: 220,
+                expandedHeight: 230,
                 elevation: 0,
                 backgroundColor: Colors.transparent,
                 flexibleSpace: FlexibleSpaceBar(

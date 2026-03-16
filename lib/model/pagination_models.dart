@@ -45,7 +45,8 @@ class PaginationState {
   final String? error;
 
   PaginationState({
-    this.currentPage = 0,
+    // Start at -1 so the first load requests page 0.
+    this.currentPage = -1,
     this.isLoading = false,
     this.hasMore = true,
     this.error,

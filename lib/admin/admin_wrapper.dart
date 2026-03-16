@@ -6,20 +6,41 @@ import 'package:managementt/admin/admin_dashboard.dart';
 import 'package:managementt/admin/project_dashboard.dart';
 import 'package:managementt/components/dashboard_bottom_nav.dart';
 import 'package:managementt/controller/admin_nav_controller.dart';
+import 'package:managementt/controller/dashboard_controller.dart';
+import 'package:managementt/controller/task_controller.dart';
 import 'package:managementt/members/member_profile.dart';
 
-class AdminWrapper extends StatelessWidget {
-  AdminWrapper({super.key});
+class AdminWrapper extends StatefulWidget {
+  const AdminWrapper({super.key});
 
+  @override
+  State<AdminWrapper> createState() => _AdminWrapperState();
+}
+
+class _AdminWrapperState extends State<AdminWrapper> {
   final AdminNavController navController = Get.find<AdminNavController>();
+  final DashboardController dashboardController =
+      Get.find<DashboardController>();
+  final TaskController taskController = Get.find<TaskController>();
 
-  final List<Widget> _pages = [
-    const AdminDashboard(),
-    ProjectDashboard(),
-    EmployeeDashboard(),
-    const AnalyticsPage(),
-    const MemberProfilePage(),
-  ];
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      const AdminDashboard(),
+      ProjectDashboard(),
+      EmployeeDashboard(),
+      const AnalyticsPage(),
+      const MemberProfilePage(),
+    ];
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      dashboardController.loadDashboard();
+      taskController.getAllTask();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
