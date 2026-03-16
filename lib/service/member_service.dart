@@ -60,4 +60,43 @@ class MemberService {
       throw Exception('Failed to get status count');
     }
   }
+
+  Future<Member> updateMember(String id, Member member) async {
+    final response = await _api.put(
+      '/members/update/$id',
+      body: member.toJson(),
+    );
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      return Member.fromJson(data);
+    } else {
+      throw Exception(
+        response.body.isNotEmpty ? response.body : 'Failed to update member',
+      );
+    }
+  }
+
+  Future<String> changePassword({
+    required String username,
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    final response = await _api.put(
+      '/auth/change-password',
+      body: {
+        'username': username,
+        'oldPassword': oldPassword,
+        'newPassword': newPassword,
+      },
+    );
+    if (response.statusCode == 200) {
+      return response.body;
+    } else if (response.statusCode == 403) {
+      throw Exception('Current password is incorrect');
+    } else {
+      throw Exception(
+        response.body.isNotEmpty ? response.body : 'Failed to change password',
+      );
+    }
+  }
 }

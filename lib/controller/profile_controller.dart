@@ -97,4 +97,52 @@ class ProfileController extends GetxController {
     }
     return '?';
   }
+
+  // ── Profile update ──
+
+  final isSaving = false.obs;
+
+  Future<bool> updateProfile({
+    required String name,
+    required String phone,
+  }) async {
+    if (member.value?.id == null) return false;
+    isSaving.value = true;
+    try {
+      final updated = Member(name: name, mobileNo: phone, tasks: []);
+      final result = await _memberService.updateMember(
+        member.value!.id!,
+        updated,
+      );
+      member.value = result;
+      member.refresh();
+      return true;
+    } catch (e) {
+      print('ProfileController: Failed to update profile — $e');
+      return false;
+    } finally {
+      isSaving.value = false;
+    }
+  }
+
+  Future<String?> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    isSaving.value = true;
+    try {
+      final username = AuthController.to.username.value;
+      await _memberService.changePassword(
+        username: username,
+        oldPassword: oldPassword,
+        newPassword: newPassword,
+      );
+      return null; // success
+    } catch (e) {
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      return msg;
+    } finally {
+      isSaving.value = false;
+    }
+  }
 }
