@@ -104,4 +104,15 @@ class TaskService {
       throw Exception('Failed to get task count');
     }
   }
+
+  /// Trigger overdue check on the server.
+  /// This marks tasks/projects as OVERDUE if their deadline has passed.
+  Future<void> checkOverdue() async {
+    try {
+      await _api.post('/tasks/check-overdue');
+    } catch (e) {
+      // Silently fail - overdue check is not critical
+      print('TaskService: Failed to check overdue — $e');
+    }
+  }
 }

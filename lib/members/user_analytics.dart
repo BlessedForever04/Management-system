@@ -9,6 +9,7 @@ import 'package:managementt/components/top_contributors.dart';
 import 'package:managementt/components/priority_breakdown.dart';
 import 'package:managementt/components/deadlines_at_risk.dart';
 import 'package:managementt/controller/user_dashboard_controller.dart';
+import 'package:managementt/service/task_service.dart';
 
 const _months = [
   'Jan',
@@ -45,8 +46,14 @@ class UserAnalyticsPage extends StatelessWidget {
           final totalItems = allItems.length;
           final doneItems = allItems.where((t) => t.status == 'DONE').length;
 
-          return SingleChildScrollView(
-            child: Column(
+          return RefreshIndicator(
+            onRefresh: () async {
+              await TaskService().checkOverdue();
+              await dc.loadDashboard();
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header
@@ -190,6 +197,7 @@ class UserAnalyticsPage extends StatelessWidget {
                 const SizedBox(height: 100),
               ],
             ),
+          ),
           );
         }),
       ),

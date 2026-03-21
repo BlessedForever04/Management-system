@@ -5,6 +5,7 @@ import 'package:managementt/components/app_render_entrance.dart';
 import 'package:managementt/model/filter_enums.dart';
 import 'package:managementt/controller/user_dashboard_controller.dart';
 import 'package:managementt/members/user_task_detail_page.dart';
+import 'package:managementt/service/task_service.dart';
 
 const _months = [
   'Jan',
@@ -59,8 +60,14 @@ class _UserTaskDashboardState extends State<UserTaskDashboard> {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
       body: AppRenderEntrance(
-        child: SingleChildScrollView(
-          child: Column(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await TaskService().checkOverdue();
+            await dc.loadDashboard();
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
             children: [
               /// HEADER
               Container(
@@ -453,6 +460,7 @@ class _UserTaskDashboardState extends State<UserTaskDashboard> {
               const SizedBox(height: 100),
             ],
           ),
+        ),
         ),
       ),
     );

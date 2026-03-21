@@ -117,9 +117,14 @@ class UserDashboardController extends GetxController {
 
   List<StatusData> get statusData {
     final all = projects;
-    final done = all.where((p) => p.status == 'DONE').length;
+    final done = all
+        .where((p) => p.status == 'DONE' || p.status == 'COMPLETED')
+        .length;
     final inProgress = all.where((p) => p.status == 'IN_PROGRESS').length;
-    final notStarted = all.where((p) => p.status == 'NOT_STARTED').length;
+    final review = all.where((p) => p.status == 'REVIEW').length;
+    final notStarted = all
+        .where((p) => p.status == 'NOT_STARTED' || p.status == 'TODO')
+        .length;
     final overdue = all.where((p) => p.status == 'OVERDUE').length;
     return [
       StatusData(label: 'Done', count: done, color: AppColors.success),
@@ -129,17 +134,22 @@ class UserDashboardController extends GetxController {
         color: AppColors.info,
       ),
       StatusData(
+        label: 'Review',
+        count: review,
+        color: const Color(0xFFA855F7),
+      ),
+      StatusData(
         label: 'Not Started',
         count: notStarted,
         color: const Color(0xFFD1D5DB),
       ),
-      StatusData(label: 'Overdue', count: overdue, color: AppColors.warning),
+      StatusData(label: 'Overdue', count: overdue, color: AppColors.error),
     ];
   }
 
   String get completionPercent {
     if (projects.isEmpty) return '0';
-    final done = projects.where((p) => p.status == 'DONE').length;
+    final done = projects.where((p) => p.status == 'DONE' || p.status == 'COMPLETED').length;
     return ((done / projects.length) * 100).toStringAsFixed(0);
   }
 

@@ -8,6 +8,7 @@ import 'package:managementt/components/date_time_helper.dart';
 import 'package:managementt/components/app_render_entrance.dart';
 import 'package:managementt/components/project_card.dart';
 import 'package:managementt/controller/user_dashboard_controller.dart';
+import 'package:managementt/service/task_service.dart';
 
 const _months = [
   'Jan',
@@ -60,8 +61,14 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
       body: AppRenderEntrance(
-        child: SingleChildScrollView(
-          child: Column(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await TaskService().checkOverdue();
+            await dc.loadDashboard();
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
             children: [
               /// HEADER
               Container(
@@ -282,6 +289,7 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
               const SizedBox(height: 100),
             ],
           ),
+        ),
         ),
       ),
     );

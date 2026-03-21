@@ -10,6 +10,7 @@ import 'package:managementt/controller/member_controller.dart';
 import 'package:managementt/controller/task_controller.dart';
 import 'package:managementt/model/member.dart';
 import 'package:managementt/model/task.dart';
+import 'package:managementt/service/task_service.dart';
 
 const _months = [
   'Jan',
@@ -88,8 +89,15 @@ class EmployeeDashboard extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
       body: AppRenderEntrance(
-        child: SingleChildScrollView(
-          child: Column(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await TaskService().checkOverdue();
+            await memberController.getMembers();
+            await taskController.getAllTask();
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
             children: [
               /// HEADER
               Container(
@@ -278,6 +286,7 @@ class EmployeeDashboard extends StatelessWidget {
               const SizedBox(height: 100),
             ],
           ),
+        ),
         ),
       ),
     );

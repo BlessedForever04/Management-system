@@ -13,6 +13,7 @@ import 'package:managementt/controller/dashboard_controller.dart';
 import 'package:managementt/controller/task_controller.dart';
 import 'package:managementt/controller/project_pagination_controller.dart';
 import 'package:managementt/model/filter_enums.dart';
+import 'package:managementt/service/task_service.dart';
 
 const _months = [
   'Jan',
@@ -77,6 +78,7 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
       body: AppRenderEntrance(
         child: RefreshIndicator(
           onRefresh: () async {
+            await TaskService().checkOverdue();
             paginationController.resetPagination();
             await paginationController.loadNextPage();
           },

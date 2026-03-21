@@ -12,6 +12,7 @@ import 'package:managementt/components/section_header.dart';
 import 'package:managementt/components/stat_card.dart';
 import 'package:managementt/controller/admin_nav_controller.dart';
 import 'package:managementt/controller/dashboard_controller.dart';
+import 'package:managementt/service/task_service.dart';
 
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});
@@ -43,8 +44,14 @@ class AdminDashboard extends StatelessWidget {
 
           final completionPercent = dc.completionPercent;
 
-          return SingleChildScrollView(
-            child: Column(
+          return RefreshIndicator(
+            onRefresh: () async {
+              await TaskService().checkOverdue();
+              await dc.loadDashboard();
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
               children: [
                 /// HEADER
                 Container(
@@ -466,6 +473,7 @@ class AdminDashboard extends StatelessWidget {
                 const SizedBox(height: 100),
               ],
             ),
+          ),
           );
         }),
       ),

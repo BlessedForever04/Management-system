@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:managementt/components/app_colors.dart';
 import 'package:managementt/components/app_render_entrance.dart';
 import 'package:managementt/controller/dashboard_controller.dart';
+import 'package:managementt/service/task_service.dart';
 
 import 'package:managementt/components/task_velocity_chart.dart';
 import 'package:managementt/components/project_health_section.dart';
@@ -45,8 +46,14 @@ class AnalyticsPage extends StatelessWidget {
           final totalItems = dc.allItems.length;
           final doneItems = dc.allItems.where((t) => t.status == 'DONE').length;
 
-          return SingleChildScrollView(
-            child: Column(
+          return RefreshIndicator(
+            onRefresh: () async {
+              await TaskService().checkOverdue();
+              await dc.loadDashboard();
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ─── Header ───
@@ -190,6 +197,7 @@ class AnalyticsPage extends StatelessWidget {
                 const SizedBox(height: 100),
               ],
             ),
+          ),
           );
         }),
       ),

@@ -11,6 +11,7 @@ import 'package:managementt/components/stat_card.dart';
 import 'package:managementt/controller/user_nav_controller.dart';
 import 'package:managementt/controller/user_dashboard_controller.dart';
 import 'package:managementt/members/user_project_dashboard.dart';
+import 'package:managementt/service/task_service.dart';
 
 class UserDashboard extends StatelessWidget {
   const UserDashboard({super.key});
@@ -40,8 +41,14 @@ class UserDashboard extends StatelessWidget {
 
           final completionPercent = dc.completionPercent;
 
-          return SingleChildScrollView(
-            child: Column(
+          return RefreshIndicator(
+            onRefresh: () async {
+              await TaskService().checkOverdue();
+              await dc.loadDashboard();
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
               children: [
                 /// HEADER
                 Container(
@@ -392,6 +399,7 @@ class UserDashboard extends StatelessWidget {
                 const SizedBox(height: 24),
               ],
             ),
+          ),
           );
         }),
       ),
