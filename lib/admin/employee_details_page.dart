@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managementt/admin/project_detail_page.dart';
+import 'package:managementt/admin/user_assignments_page.dart';
 import 'package:managementt/components/app_colors.dart';
 import 'package:managementt/components/app_render_entrance.dart';
 import 'package:managementt/components/donut_chart.dart';
@@ -82,7 +83,9 @@ class EmployeeDetailsPage extends StatelessWidget {
   }
 
   int _overdueTasks(List<Task> tasks) {
-    return tasks.where((t) => (t.status ?? '').toUpperCase() == 'OVERDUE').length;
+    return tasks
+        .where((t) => (t.status ?? '').toUpperCase() == 'OVERDUE')
+        .length;
   }
 
   List<StatusData> _getProjectStatusData(List<Task> projects) {
@@ -178,6 +181,19 @@ class EmployeeDetailsPage extends StatelessWidget {
           final tasks = owned
               .where((t) => (t.type ?? '').toUpperCase() == 'TASK')
               .toList();
+          final ongoingProjects = projects.where(_isOngoing).toList();
+          final completedProjects = projects.where(_isCompleted).toList();
+          final ongoingTasks = tasks.where(_isOngoing).toList();
+          final completedTasks = tasks.where(_isCompleted).toList();
+          const listLimit = 5;
+          final limitedOngoingProjects = ongoingProjects
+              .take(listLimit)
+              .toList();
+          final limitedOngoingTasks = ongoingTasks.take(listLimit).toList();
+          final limitedCompletedProjects = completedProjects
+              .take(listLimit)
+              .toList();
+          final limitedCompletedTasks = completedTasks.take(listLimit).toList();
 
           return CustomScrollView(
             slivers: [
@@ -359,12 +375,39 @@ class EmployeeDetailsPage extends StatelessWidget {
                       _InfoTile(label: 'Role', value: member.role ?? '-'),
                       _InfoTile(label: 'Phone', value: member.mobileNo ?? '-'),
                       const SizedBox(height: 18),
-                      const Text(
-                        'Ongoing Projects',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                        ),
+                      Row(
+                        children: [
+                          const Text(
+                            'Ongoing Projects',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const Spacer(),
+                          if (!_taskController.isLoading.value &&
+                              ongoingProjects.isNotEmpty)
+                            TextButton(
+                              onPressed: () {
+                                Get.to(
+                                  () => UserAssignmentsPage(
+                                    member: member,
+                                    initialView: UserAssignmentsView.projects,
+                                  ),
+                                );
+                              },
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
+                                foregroundColor: AppColors.primaryBlue,
+                                textStyle: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              child: const Text('See all'),
+                            ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       if (_taskController.isLoading.value)
@@ -372,12 +415,10 @@ class EmployeeDetailsPage extends StatelessWidget {
                           padding: EdgeInsets.all(16),
                           child: Center(child: CircularProgressIndicator()),
                         )
-                      else if (projects.where(_isOngoing).isEmpty)
-                        const _EmptySection(
-                          text: 'No ongoing projects',
-                        )
+                      else if (ongoingProjects.isEmpty)
+                        const _EmptySection(text: 'No ongoing projects')
                       else
-                        ...projects.where(_isOngoing).map(
+                        ...limitedOngoingProjects.map(
                           (p) => _OwnedItemTile(
                             item: p,
                             deadline: _deadlineLabel(p.deadLine),
@@ -390,12 +431,40 @@ class EmployeeDetailsPage extends StatelessWidget {
                           ),
                         ),
                       const SizedBox(height: 18),
-                      const Text(
-                        'Completed Projects',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                        ),
+                      Row(
+                        children: [
+                          const Text(
+                            'Completed Projects',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const Spacer(),
+                          if (!_taskController.isLoading.value &&
+                              completedProjects.isNotEmpty)
+                            TextButton(
+                              onPressed: () {
+                                Get.to(
+                                  () => UserAssignmentsPage(
+                                    member: member,
+                                    initialView: UserAssignmentsView.projects,
+                                    initialStatusFilter: 'DONE',
+                                  ),
+                                );
+                              },
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
+                                foregroundColor: AppColors.primaryBlue,
+                                textStyle: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              child: const Text('See all'),
+                            ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       if (_taskController.isLoading.value)
@@ -403,12 +472,10 @@ class EmployeeDetailsPage extends StatelessWidget {
                           padding: EdgeInsets.all(16),
                           child: Center(child: CircularProgressIndicator()),
                         )
-                      else if (projects.where(_isCompleted).isEmpty)
-                        const _EmptySection(
-                          text: 'No completed projects',
-                        )
+                      else if (completedProjects.isEmpty)
+                        const _EmptySection(text: 'No completed projects')
                       else
-                        ...projects.where(_isCompleted).map(
+                        ...limitedCompletedProjects.map(
                           (p) => _OwnedItemTile(
                             item: p,
                             deadline: _deadlineLabel(p.deadLine),
@@ -421,12 +488,39 @@ class EmployeeDetailsPage extends StatelessWidget {
                           ),
                         ),
                       const SizedBox(height: 18),
-                      const Text(
-                        'Ongoing Tasks',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                        ),
+                      Row(
+                        children: [
+                          const Text(
+                            'Ongoing Tasks',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const Spacer(),
+                          if (!_taskController.isLoading.value &&
+                              ongoingTasks.isNotEmpty)
+                            TextButton(
+                              onPressed: () {
+                                Get.to(
+                                  () => UserAssignmentsPage(
+                                    member: member,
+                                    initialView: UserAssignmentsView.tasks,
+                                  ),
+                                );
+                              },
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
+                                foregroundColor: AppColors.primaryBlue,
+                                textStyle: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              child: const Text('See all'),
+                            ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       if (_taskController.isLoading.value)
@@ -434,12 +528,10 @@ class EmployeeDetailsPage extends StatelessWidget {
                           padding: EdgeInsets.all(16),
                           child: Center(child: CircularProgressIndicator()),
                         )
-                      else if (tasks.where(_isOngoing).isEmpty)
-                        const _EmptySection(
-                          text: 'No ongoing tasks',
-                        )
+                      else if (ongoingTasks.isEmpty)
+                        const _EmptySection(text: 'No ongoing tasks')
                       else
-                        ...tasks.where(_isOngoing).map(
+                        ...limitedOngoingTasks.map(
                           (t) => _OwnedItemTile(
                             item: t,
                             deadline: _deadlineLabel(t.deadLine),
@@ -462,12 +554,40 @@ class EmployeeDetailsPage extends StatelessWidget {
                           ),
                         ),
                       const SizedBox(height: 18),
-                      const Text(
-                        'Completed Tasks',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                        ),
+                      Row(
+                        children: [
+                          const Text(
+                            'Completed Tasks',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const Spacer(),
+                          if (!_taskController.isLoading.value &&
+                              completedTasks.isNotEmpty)
+                            TextButton(
+                              onPressed: () {
+                                Get.to(
+                                  () => UserAssignmentsPage(
+                                    member: member,
+                                    initialView: UserAssignmentsView.tasks,
+                                    initialStatusFilter: 'DONE',
+                                  ),
+                                );
+                              },
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
+                                foregroundColor: AppColors.primaryBlue,
+                                textStyle: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              child: const Text('See all'),
+                            ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       if (_taskController.isLoading.value)
@@ -475,12 +595,10 @@ class EmployeeDetailsPage extends StatelessWidget {
                           padding: EdgeInsets.all(16),
                           child: Center(child: CircularProgressIndicator()),
                         )
-                      else if (tasks.where(_isCompleted).isEmpty)
-                        const _EmptySection(
-                          text: 'No completed tasks',
-                        )
+                      else if (completedTasks.isEmpty)
+                        const _EmptySection(text: 'No completed tasks')
                       else
-                        ...tasks.where(_isCompleted).map(
+                        ...limitedCompletedTasks.map(
                           (t) => _OwnedItemTile(
                             item: t,
                             deadline: _deadlineLabel(t.deadLine),
@@ -766,33 +884,35 @@ class _DonutChartCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           // Legend
-          ...data.where((d) => d.count > 0).map(
-            (d) => Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: d.color,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      '${d.label}: ${d.count}',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFF6B7280),
+          ...data
+              .where((d) => d.count > 0)
+              .map(
+                (d) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: d.color,
+                          shape: BoxShape.circle,
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          '${d.label}: ${d.count}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF6B7280),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
         ],
       ),
     );
