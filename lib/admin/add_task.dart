@@ -25,6 +25,7 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
   final selectedMemberId = ''.obs;
   final memberSearchQuery = ''.obs;
   final Rx<DateTime?> selectedDeadline = Rx<DateTime?>(null);
+  final Rx<DateTime?> selectedStartDate = Rx<DateTime?>(null);
   final TaskController _taskController = Get.find<TaskController>();
   final MemberController _memberController = Get.find<MemberController>();
 
@@ -440,6 +441,24 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
                               ),
                               const SizedBox(height: 20),
                             ],
+                            _animatedField(
+                              _isProjectTask ? 4 : 3,
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildLabel("Start date"),
+                                  const SizedBox(height: 8),
+                                  Obx(
+                                    () => _buildDatePicker(
+                                      label: "Pick Start Date",
+                                      date: selectedStartDate.value,
+                                      onTap: () => _pickDate(selectedStartDate),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 20),
 
                             // Deadline
                             _animatedField(
@@ -1029,7 +1048,7 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
         parentTaskId: widget.parentTaskId,
         contributionPercent: _isProjectTask ? (contributionValue ?? 0) : 0,
         deadLine: selectedDeadline.value,
-        startDate: DateTime.now(),
+        startDate: selectedStartDate.value,
       ),
     );
     if (!isCreated) {
