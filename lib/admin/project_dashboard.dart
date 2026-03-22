@@ -5,13 +5,11 @@ import 'package:managementt/admin/add_task.dart';
 import 'package:managementt/admin/project_detail_page.dart';
 import 'package:managementt/components/app_confirm_dialog.dart';
 import 'package:managementt/components/app_colors.dart';
-import 'package:managementt/components/pagination_loading_indicator.dart';
 import 'package:managementt/components/date_time_helper.dart';
 import 'package:managementt/components/app_render_entrance.dart';
 import 'package:managementt/components/project_card.dart';
 import 'package:managementt/controller/dashboard_controller.dart';
 import 'package:managementt/controller/task_controller.dart';
-import 'package:managementt/controller/project_pagination_controller.dart';
 import 'package:managementt/model/filter_enums.dart';
 import 'package:managementt/service/task_service.dart';
 
@@ -38,14 +36,16 @@ class ProjectDashboard extends StatefulWidget {
 }
 
 class _ProjectDashboardState extends State<ProjectDashboard> {
-  late ProjectPaginationController paginationController;
   final TaskController taskController = Get.find<TaskController>();
   final DashboardController dc = Get.find<DashboardController>();
+
+  var selectedStatus = ProjectStatusFilter.all.obs;
+
   static const List<_StatusFilterChipData> _statusFilterOptions = [
     _StatusFilterChipData(
       filter: ProjectStatusFilter.all,
       label: 'All',
-      color: Color.fromARGB(255, 203, 188, 230),
+      color: Color(0xFFCBBCE6),
     ),
     _StatusFilterChipData(
       filter: ProjectStatusFilter.active,
@@ -60,7 +60,7 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
     _StatusFilterChipData(
       filter: ProjectStatusFilter.notStarted,
       label: 'Not Started',
-      color: Color.fromARGB(255, 249, 188, 22),
+      color: Color(0xFFF9BC16),
     ),
     _StatusFilterChipData(
       filter: ProjectStatusFilter.overdue,
@@ -69,74 +69,22 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
     ),
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    final alreadyRegistered = Get.isRegistered<ProjectPaginationController>();
-    paginationController = alreadyRegistered
-        ? Get.find<ProjectPaginationController>()
-        : Get.put(ProjectPaginationController());
-    paginationController.updateStatusFilter(ProjectStatusFilter.all);
-    paginationController.updatePriorityFilter(PriorityFilter.all);
-    paginationController.updateSearchQuery('');
-
-    // Only trigger a manual refresh when reusing an existing controller.
-    // Newly created controllers automatically load their first page in onInit.
-    if (alreadyRegistered) {
-      paginationController.resetPagination();
-      paginationController.loadNextPage();
-    }
-  }
-
-  @override
-  void dispose() {
-    if (Get.isRegistered<ProjectPaginationController>()) {
-      Get.delete<ProjectPaginationController>();
-    }
-    super.dispose();
-  }
-
   String get formattedDate {
     final now = DateTime.now();
     return '${_months[now.month - 1]} ${now.day}, ${now.year}';
   }
 
-  Widget _buildStatusFilterCarousel() {
-    return SizedBox(
-      height: 40,
-      child: Obx(() {
-        final selectedFilter = paginationController.statusFilter.value;
-        return ListView.separated(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.zero,
-          itemCount: _statusFilterOptions.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 12),
-          itemBuilder: (context, index) {
-            final option = _statusFilterOptions[index];
-            final count = _projectCountFor(option.filter);
-            return _StatusFilterChip(
-              data: option,
-              isActive: option.filter == selectedFilter,
-              count: count,
-              onTap: () =>
-                  paginationController.updateStatusFilter(option.filter),
-            );
-          },
-        );
-      }),
-    );
-  }
+  // ONLY showing FIXED parts (rest remains same)
 
-  int _projectCountFor(ProjectStatusFilter filter) {
-    final projects = paginationController.items;
-    if (filter == ProjectStatusFilter.all) {
-      return projects.length;
-    }
+  // 🔥 FIX 1: make filtering reactive properly
+  List getFilteredTasks() {
+    final allTasks = taskController.filteredTasks; // 🔥 USE CONTROLLER FILTER
+    final statusFilter = selectedStatus.value;
 
-    return projects.where((project) {
-      final status = ((project.status) ?? '').toUpperCase();
-      switch (filter) {
+    return allTasks.where((t) {
+      final status = (t.status ?? '').toUpperCase();
+
+      switch (statusFilter) {
         case ProjectStatusFilter.active:
           return status == 'IN_PROGRESS';
         case ProjectStatusFilter.completed:
@@ -146,9 +94,37 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
         case ProjectStatusFilter.notStarted:
           return status == 'NOT_STARTED' || status == 'TODO';
         case ProjectStatusFilter.all:
+        default:
           return true;
       }
-    }).length;
+    }).toList();
+  }
+
+  Widget _buildStatusFilterCarousel() {
+    return SizedBox(
+      height: 40,
+      child: Obx(() {
+        final current = selectedStatus.value;
+
+        return ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: _statusFilterOptions.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 12),
+          itemBuilder: (context, index) {
+            final option = _statusFilterOptions[index];
+
+            return _StatusFilterChip(
+              data: option,
+              isActive: current == option.filter,
+              count: taskController
+                  .projects
+                  .length, // avoid calling non-reactive fn
+              onTap: () => selectedStatus.value = option.filter,
+            );
+          },
+        );
+      }),
+    );
   }
 
   @override
@@ -161,26 +137,20 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
         child: RefreshIndicator(
           onRefresh: () async {
             await TaskService().checkOverdue();
-            paginationController.resetPagination();
-            await paginationController.loadNextPage();
+            await taskController.getAllTask();
           },
           child: CustomScrollView(
-            controller: paginationController.scrollController,
             slivers: [
               /// HEADER
               SliverAppBar(
                 pinned: true,
-                floating: false,
                 expandedHeight: 330,
-                elevation: 0,
                 backgroundColor: Colors.transparent,
                 flexibleSpace: FlexibleSpaceBar(
                   background: Container(
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
                         colors: [Color(0xFF7C3AED), Color(0xFF4338CA)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.only(
                         bottomLeft: Radius.circular(26),
@@ -191,9 +161,8 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                       padding: EdgeInsets.fromLTRB(20, topPad + 16, 20, 24),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          /// TITLE ROW
+                          /// TITLE
                           Row(
                             children: [
                               const Text(
@@ -222,75 +191,63 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                               ),
                             ],
                           ),
+
                           Text(
                             "Overview · $formattedDate",
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.7),
-                              fontSize: 13,
                             ),
                           ),
 
-                          /// STAT CHIPS
+                          /// STATS
                           Obx(() {
-                            final projects = paginationController.items;
-                            final completedCount = dc.completedProjectCount;
-                            final notStartedCount = projects.where((t) {
-                              final status = (t.status ?? '').toUpperCase();
-                              return status == 'NOT_STARTED' ||
-                                  status == 'TODO';
-                            }).length;
+                            final tasks = taskController.projects;
                             return Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
                               children: [
                                 _StatChip(
                                   label: 'Total',
-                                  count: projects.length,
-                                  color: const Color(0xFF60A5FA),
+                                  count: tasks.length,
+                                  color: Colors.blue,
                                 ),
                                 _StatChip(
                                   label: 'Active',
-                                  count: projects
+                                  count: tasks
                                       .where((t) => t.status == 'IN_PROGRESS')
                                       .length,
-                                  color: const Color(0xFF4ADE80),
-                                ),
-                                _StatChip(
-                                  label: 'Not Started',
-                                  count: notStartedCount,
-                                  color: const Color(0xFFE5E7EB),
+                                  color: Colors.green,
                                 ),
                                 _StatChip(
                                   label: 'Completed',
-                                  count: completedCount,
-                                  color: const Color(0xFFA78BFA),
+                                  count: tasks
+                                      .where((t) => t.status == 'DONE')
+                                      .length,
+                                  color: Colors.purple,
                                 ),
                                 _StatChip(
                                   label: 'Overdue',
-                                  count: projects
+                                  count: tasks
                                       .where((t) => t.status == 'OVERDUE')
                                       .length,
-                                  color: const Color(0xFFF87171),
+                                  color: Colors.red,
                                 ),
                               ],
                             );
                           }),
 
-                          /// STATUS FILTERS
+                          const SizedBox(height: 10),
+
                           _buildStatusFilterCarousel(),
+
+                          const SizedBox(height: 10),
 
                           /// SEARCH
                           SizedBox(
                             height: 44,
                             child: TextField(
                               onChanged: (val) =>
-                                  paginationController.updateSearchQuery(val),
+                                  taskController.searchQuery.value = val,
                               decoration: InputDecoration(
-                                hintText: "Search by project name or owner…",
-                                hintStyle: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 14,
-                                ),
+                                hintText: "Search...",
                                 filled: true,
                                 fillColor: Colors.white.withValues(alpha: 0.12),
                                 prefixIcon: const Icon(
@@ -312,85 +269,34 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                 ),
               ),
 
-              /// PROJECT LIST
+              /// LIST
               SliverPadding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
+                padding: const EdgeInsets.all(12),
                 sliver: Obx(() {
-                  final state = paginationController.paginationState.value;
-                  final filteredProjects = paginationController
-                      .getFilteredItems((ownerId) => dc.getMemberName(ownerId));
+                  final _ = selectedStatus.value; // 👈 trigger rebuild
+                  final __ = taskController.searchQuery.value;
+                  final tasks = getFilteredTasks();
 
-                  if (filteredProjects.isEmpty &&
-                      !state.isLoading &&
-                      state.error == null) {
-                    return SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.all(40),
-                        child: Center(
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.folder_open,
-                                size: 48,
-                                color: Colors.grey.shade400,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                "No projects found",
-                                style: TextStyle(color: Colors.grey.shade500),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-
-                  if (filteredProjects.isEmpty && state.isLoading) {
-                    return SliverToBoxAdapter(
-                      child: const Padding(
-                        padding: EdgeInsets.all(40),
-                        child: Center(child: CircularProgressIndicator()),
-                      ),
+                  if (tasks.isEmpty) {
+                    return const SliverToBoxAdapter(
+                      child: Center(child: Text("No projects found")),
                     );
                   }
 
                   return SliverList.builder(
-                    itemCount: filteredProjects.length + 2,
+                    itemCount: tasks.length,
                     itemBuilder: (context, index) {
-                      // Show loading indicator at bottom
-                      if (index == filteredProjects.length) {
-                        return PaginationLoadingIndicator(
-                          isLoading: state.isLoading,
-                        );
-                      }
-
-                      // Show end-of-list indicator
-                      if (index == filteredProjects.length + 1) {
-                        return EndOfListIndicator(
-                          show: !state.hasMore && !state.isLoading,
-                        );
-                      }
-
-                      final task = filteredProjects[index];
-                      final totalSub = task.completedTask + task.remainingTask;
-                      final ownerInitials = dc.getMemberInitials(task.ownerId);
+                      final task = tasks[index];
+                      final total = task.completedTask + task.remainingTask;
 
                       return Dismissible(
-                        key: ValueKey(task.id ?? index),
+                        key: ValueKey(task.id),
                         direction: DismissDirection.endToStart,
                         confirmDismiss: (_) async {
                           return AppConfirmDialog.show(
                             title: 'Delete Project',
-                            message:
-                                'Remove "${task.title}" and all its tasks?',
-                            cancelText: 'Cancel',
+                            message: 'Remove "${task.title}"?',
                             confirmText: 'Delete',
-                            tone: AppDialogTone.danger,
-                            icon: Icons.delete_outline_rounded,
                           );
                         },
                         onDismissed: (_) {
@@ -401,29 +307,22 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                         background: Container(
                           alignment: Alignment.centerRight,
                           padding: const EdgeInsets.only(right: 20),
-                          margin: const EdgeInsets.only(bottom: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.red.shade400,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.delete_outline,
-                            color: Colors.white,
-                          ),
+                          color: Colors.red,
+                          child: const Icon(Icons.delete, color: Colors.white),
                         ),
                         child: ProjectCard(
                           title: task.title,
                           subtitle: task.description,
                           dueText: dc.formatDeadline(task.deadLine),
-                          status: totalSub > 0
-                              ? '${task.completedTask}/$totalSub tasks'
+                          status: total > 0
+                              ? '${task.completedTask}/$total'
                               : null,
-                          progress: task.progress / 100.0,
+                          progress: task.progress / 100,
                           timeProgress: DateTimeHelper.remainingTimeRatio(
                             task.startDate,
                             task.deadLine,
                           ),
-                          teamMembers: [ownerInitials],
+                          teamMembers: [dc.getMemberInitials(task.ownerId)],
                           accentColor: dc.projectAccent(task),
                           onTap: () {
                             Get.to(
@@ -463,6 +362,7 @@ class _StatChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      margin: EdgeInsets.all(5),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.15),
