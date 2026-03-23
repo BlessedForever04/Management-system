@@ -8,6 +8,7 @@ import 'package:managementt/controller/dashboard_controller.dart';
 import 'package:managementt/controller/member_controller.dart';
 import 'package:managementt/controller/profile_controller.dart';
 import 'package:managementt/controller/task_controller.dart';
+import 'package:managementt/controller/user_task_controller.dart';
 import 'package:managementt/login_page.dart';
 import 'package:managementt/members/user_wrapper.dart';
 
@@ -22,6 +23,7 @@ void main() {
   Get.put(DashboardController(), permanent: true);
   Get.put(ProfileController(), permanent: true);
   Get.put(AdminNavController(), permanent: true);
+  Get.put(UserTaskController(), permanent: true);
 
   runApp(const MyApp());
 }

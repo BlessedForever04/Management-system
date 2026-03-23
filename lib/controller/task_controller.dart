@@ -85,6 +85,18 @@ class TaskController extends GetxController {
       isLoading.value = false;
     }
   }
+  
+  Future<void> getAllProjects() async {
+    isLoading.value = true;
+    try {
+      projects.value = await _taskService.getTasksByType('PROJECT');
+      getProjects();
+    } catch (e) {
+      print("Error fetching tasks: $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
   Future<void> getAllTask() async {
     isLoading.value = true;

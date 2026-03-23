@@ -393,7 +393,7 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
               SliverPadding(
                 padding: const EdgeInsets.all(12),
                 sliver: Obx(() {
-                  final tasks = getFilteredTasks();
+                  final tasks = taskController.projects;
                   final _ = taskController.searchQuery.value;
 
                   if (tasks.isEmpty) {
@@ -509,4 +509,3 @@ class _StatChip extends StatelessWidget {
     );
   }
 }
-
