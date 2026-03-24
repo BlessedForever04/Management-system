@@ -24,6 +24,8 @@ class AddTask extends StatefulWidget {
 }
 
 class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
+  static const String _noneCategoryValue = '__NONE__';
+
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController memberSearchController = TextEditingController();
@@ -1020,14 +1022,18 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
         ),
       ),
       icon: const Icon(Icons.keyboard_arrow_down_rounded),
-      items: _categoryController.categories
-          .map(
-            (category) => DropdownMenuItem<String>(
-              value: category,
-              child: Text(category, style: const TextStyle(fontSize: 14)),
-            ),
-          )
-          .toList(),
+      items: [
+        const DropdownMenuItem<String>(
+          value: _noneCategoryValue,
+          child: Text('None', style: TextStyle(fontSize: 14)),
+        ),
+        ..._categoryController.categories.map(
+          (category) => DropdownMenuItem<String>(
+            value: category,
+            child: Text(category, style: const TextStyle(fontSize: 14)),
+          ),
+        ),
+      ],
       onChanged: (value) {
         selectedCategory.value = value ?? '';
       },
@@ -1223,7 +1229,9 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
       priority: priorityController.value,
       type: widget.taskToEdit?.type ?? widget.defaultType,
       status: widget.taskToEdit?.status ?? 'NOT_STARTED',
-      category: selectedCategory.value.isEmpty
+      category: selectedCategory.value == _noneCategoryValue
+          ? null
+          : selectedCategory.value.isEmpty
           ? widget.taskToEdit?.category
           : selectedCategory.value,
       ownerId: selectedMemberId.value,
