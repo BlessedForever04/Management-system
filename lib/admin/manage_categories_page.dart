@@ -27,7 +27,6 @@ class _ManageCategoriesPageState extends State<ManageCategoriesPage> {
         content: TextField(
           controller: controller,
           autofocus: true,
-          textCapitalization: TextCapitalization.characters,
           decoration: const InputDecoration(
             hintText: 'Enter category',
             border: OutlineInputBorder(),
@@ -118,9 +117,7 @@ class _ManageCategoriesPageState extends State<ManageCategoriesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Manage Categories'),
-      ),
+      appBar: AppBar(title: const Text('Manage Categories')),
       body: Obx(() {
         final categories = _categoryController.categories;
 
