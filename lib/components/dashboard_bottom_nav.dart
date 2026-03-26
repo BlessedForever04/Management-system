@@ -335,7 +335,7 @@ class _NavButtonState extends State<_NavButton> with TickerProviderStateMixin {
                   children: [
                     // ---- Icon with crossfade between outlined/filled ----
                     SizedBox(
-                      height: 26,
+                      height: 25,
                       width: 26,
                       child: Stack(
                         alignment: Alignment.center,
