@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managementt/admin/project_detail_page.dart';
 import 'package:managementt/components/app_colors.dart';
-import 'package:managementt/components/date_time_helper.dart';
 import 'package:managementt/components/app_render_entrance.dart';
+import 'package:managementt/components/date_time_helper.dart';
 import 'package:managementt/components/project_card.dart';
+import 'package:managementt/controller/category_controller.dart';
 import 'package:managementt/controller/profile_controller.dart';
-// ...existing code...
 import 'package:managementt/controller/user_dashboard_controller.dart';
 import 'package:managementt/controller/user_task_controller.dart';
 import 'package:managementt/service/task_service.dart';
@@ -36,6 +36,32 @@ class UserProjectDashboard extends StatefulWidget {
 class _UserProjectDashboardState extends State<UserProjectDashboard> {
   late TextEditingController searchController;
   final searchQuery = ''.obs;
+  final selectedProgress = 'ALL'.obs;
+  final selectedPriority = 'ALL'.obs;
+  final selectedCategory = 'ALL'.obs;
+
+  final UserDashboardController dc = Get.find<UserDashboardController>();
+  final UserTaskController taskController = Get.find<UserTaskController>();
+  final CategoryController categoryController = Get.find<CategoryController>();
+
+  static const Map<String, String> _projectProgressOptions = {
+    'ALL': 'ALL',
+    'IN_PROGRESS': 'IN PROGRESS',
+    'COMPLETED': 'COMPLETED',
+    'NOT_STARTED': 'NOT STARTED',
+    'OVERDUE': 'OVERDUE',
+  };
+
+  static const List<String> _projectPriorityOptions = [
+    'ALL',
+    'Critical',
+    'High',
+    'Moderate',
+    'Low',
+  ];
+
+  List<String> get _projectCategoryOptions =>
+      categoryController.dropdownOptions;
 
   @override
   void initState() {
@@ -46,13 +72,10 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
     final userId = profileController.member.value?.id.toString();
 
     if (userId != null) {
-      // fetch immediately if id already available
-      // debug log to help diagnose missing projects
       // ignore: avoid_print
       print('UserProjectDashboard: fetching tasks for userId=$userId');
       taskController.fetchUserProjects(userId);
     } else {
-      // listen once and fetch when the id becomes available
       once(profileController.member, (val) {
         final newId = val?.id.toString();
         // ignore: avoid_print
@@ -94,7 +117,6 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
             physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
               children: [
-                /// HEADER
                 Container(
                   width: double.infinity,
                   padding: EdgeInsets.fromLTRB(20, topPad + 16, 20, 24),
@@ -112,11 +134,10 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      /// TITLE ROW
-                      Row(
+                      const Row(
                         children: [
-                          const Text(
-                            "My Projects",
+                          Text(
+                            'My Projects',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 28,
@@ -127,15 +148,13 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "Overview · $formattedDate",
+                        'Overview · $formattedDate',
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.7),
                           fontSize: 13,
                         ),
                       ),
                       const SizedBox(height: 16),
-
-                      /// STAT CHIPS
                       Obx(() {
                         return Wrap(
                           spacing: 8,
@@ -154,7 +173,7 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
                               color: const Color(0xFF4ADE80),
                             ),
                             _StatChip(
-                              label: 'Completed',
+                              label: 'Done',
                               count: taskController.userProjects
                                   .where((t) => t.status == 'DONE')
                                   .length,
@@ -170,17 +189,16 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
                           ],
                         );
                       }),
-
+                      const SizedBox(height: 12),
+                      _buildProjectFiltersRow(),
                       const SizedBox(height: 14),
-
-                      /// SEARCH
                       SizedBox(
                         height: 44,
                         child: TextField(
                           controller: searchController,
                           onChanged: (val) => searchQuery.value = val,
                           decoration: InputDecoration(
-                            hintText: "Search projects…",
+                            hintText: 'Search projects…',
                             hintStyle: const TextStyle(
                               color: Colors.white70,
                               fontSize: 14,
@@ -202,10 +220,7 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 12),
-
-                /// PROJECT LIST using ProjectCard
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Obx(() {
@@ -217,15 +232,54 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
                     }
 
                     final projects = taskController.userProjects;
-
                     final query = searchQuery.value.trim().toLowerCase();
-                    final filtered = query.isEmpty
-                        ? projects
+
+                    var filtered = query.isEmpty
+                        ? projects.toList()
                         : projects
                               .where(
                                 (t) => t.title.toLowerCase().contains(query),
                               )
                               .toList();
+
+                    if (selectedProgress.value != 'ALL') {
+                      filtered = filtered.where((t) {
+                        final status = (t.status ?? '').toUpperCase();
+                        switch (selectedProgress.value) {
+                          case 'IN_PROGRESS':
+                            return status == 'IN_PROGRESS';
+                          case 'COMPLETED':
+                            return status == 'DONE' || status == 'COMPLETED';
+                          case 'NOT_STARTED':
+                            return status == 'NOT_STARTED' || status == 'TODO';
+                          case 'OVERDUE':
+                            return status == 'OVERDUE';
+                          case 'ALL':
+                          default:
+                            return true;
+                        }
+                      }).toList();
+                    }
+
+                    if (selectedPriority.value != 'ALL') {
+                      filtered = filtered.where((t) {
+                        final priority = t.priority.trim().toUpperCase();
+                        return _matchesPriority(
+                          priority,
+                          selectedPriority.value,
+                        );
+                      }).toList();
+                    }
+
+                    if (selectedCategory.value != 'ALL') {
+                      filtered = filtered.where((t) {
+                        final taskCategory = (t.category ?? '')
+                            .trim()
+                            .toLowerCase();
+                        return taskCategory ==
+                            selectedCategory.value.trim().toLowerCase();
+                      }).toList();
+                    }
 
                     if (filtered.isEmpty) {
                       return Padding(
@@ -240,7 +294,7 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                "No projects found",
+                                'No projects found',
                                 style: TextStyle(color: Colors.grey.shade500),
                               ),
                             ],
@@ -291,7 +345,6 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
                     );
                   }),
                 ),
-
                 const SizedBox(height: 100),
               ],
             ),

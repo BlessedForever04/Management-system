@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:managementt/components/app_colors.dart';
+import 'package:managementt/components/app_render_entrance.dart';
 import 'package:managementt/controller/collaboration_controller.dart';
-import 'package:managementt/controller/task_controller.dart';
+import 'package:managementt/model/task.dart';
 
 class AddCollaboration extends StatelessWidget {
   AddCollaboration({super.key});

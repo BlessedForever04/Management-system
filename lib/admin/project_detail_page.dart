@@ -514,8 +514,9 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                         IconButton(
                           onPressed: () {
                             Get.to(
-                              () => CollaborationPage(),
-                              arguments: project.id,
+                              () => CollaborationPage(
+                                projectId: (project.id ?? '').trim(),
+                              ),
                             );
                           },
                           icon: const Icon(Icons.people, color: Colors.white),
