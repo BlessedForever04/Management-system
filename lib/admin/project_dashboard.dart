@@ -181,101 +181,167 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
   }
 
   Widget _buildProjectFiltersRow() {
-    return Obx(
-      () => Row(
-        children: [
-          Expanded(
-            child: _buildFilterDropdown(
-              value: selectedProgress.value,
-              hintText: 'project progress',
-              options: _projectProgressOptions.keys.toList(),
-              labelBuilder: (value) => _projectProgressOptions[value] ?? value,
-              onChanged: (value) {
-                if (value == null) return;
-                _onProgressChanged(value);
-              },
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Obx(
+          () => Row(
+            children: [
+              Expanded(
+                child: _buildFilterDropdown(
+                  label: 'Progress',
+                  value: selectedProgress.value,
+                  hintText: 'Select progress',
+                  options: _projectProgressOptions.keys.toList(),
+                  labelBuilder: (value) => _projectProgressOptions[value] ?? value,
+                  onChanged: (value) {
+                    if (value == null) return;
+                    _onProgressChanged(value);
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildFilterDropdown(
+                  label: 'Priority',
+                  value: selectedPriority.value,
+                  hintText: 'Select priority',
+                  options: _projectPriorityOptions,
+                  labelBuilder: (value) => value,
+                  onChanged: (value) {
+                    if (value == null) return;
+                    _onPriorityChanged(value);
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildFilterDropdown(
+                  label: 'Category',
+                  value: selectedCategory.value,
+                  hintText: 'Select category',
+                  options: _projectCategoryOptions,
+                  labelBuilder: (value) => value,
+                  onChanged: (value) {
+                    if (value == null) return;
+                    _onCategoryChanged(value);
+                  },
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _buildFilterDropdown(
-              value: selectedPriority.value,
-              hintText: 'project priority',
-              options: _projectPriorityOptions,
-              labelBuilder: (value) => value,
-              onChanged: (value) {
-                if (value == null) return;
-                _onPriorityChanged(value);
-              },
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _buildFilterDropdown(
-              value: selectedCategory.value,
-              hintText: 'project categories',
-              options: _projectCategoryOptions,
-              labelBuilder: (value) => value,
-              onChanged: (value) {
-                if (value == null) return;
-                _onCategoryChanged(value);
-              },
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildFilterDropdown({
+    required String label,
     required String value,
     required String hintText,
     required List<String> options,
     required String Function(String value) labelBuilder,
     required ValueChanged<String?> onChanged,
   }) {
-    return SizedBox(
-      height: 42,
-      child: DropdownButtonFormField<String>(
-        value: value,
-        isExpanded: true,
-        iconEnabledColor: Colors.white,
-        dropdownColor: const Color(0xFF4F46E5),
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-        ),
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: TextStyle(
-            color: Colors.white.withValues(alpha: 0.8),
-            fontSize: 11,
-          ),
-          filled: true,
-          fillColor: Colors.white.withValues(alpha: 0.12),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 10,
-            vertical: 8,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-        ),
-        items: options
-            .map(
-              (option) => DropdownMenuItem<String>(
-                value: option,
-                child: Text(
-                  labelBuilder(option),
-                  overflow: TextOverflow.ellipsis,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double cappedMenuWidth =
+          (constraints.maxWidth - 16).clamp(0.0, constraints.maxWidth).toDouble();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.75),
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            SizedBox(
+              height: 40,
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                  scrollbarTheme: ScrollbarThemeData(
+                    thumbVisibility: WidgetStateProperty.all(false),
+                    trackVisibility: WidgetStateProperty.all(false),
+                    thickness: WidgetStateProperty.all(0),
+                    radius: const Radius.circular(0),
+                  ),
+                ),
+                child: DropdownButtonFormField<String>(
+                  value: value,
+                  isExpanded: true,
+                  icon: const Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                  dropdownColor: const Color(0xFF4F46E5),
+                  borderRadius: BorderRadius.circular(12),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  menuMaxHeight: 240,
+                  decoration: InputDecoration(
+                    hintText: hintText,
+                    hintStyle: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      fontSize: 11,
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withValues(alpha: 0.12),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.18),
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        width: 1.2,
+                      ),
+                    ),
+                  ),
+                  items: options
+                      .map(
+                        (option) => DropdownMenuItem<String>(
+                          value: option,
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: cappedMenuWidth,
+                            ),
+                            child: Text(
+                              labelBuilder(option),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: onChanged,
                 ),
               ),
-            )
-            .toList(),
-        onChanged: onChanged,
-      ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -297,7 +363,7 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
               /// HEADER
               SliverAppBar(
                 pinned: true,
-                expandedHeight: 288,
+                expandedHeight: 260,
                 backgroundColor: Colors.transparent,
                 flexibleSpace: FlexibleSpaceBar(
                   background: Container(
@@ -317,6 +383,7 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                         children: [
                           /// TITLE
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text(
                                 "Projects",
@@ -324,6 +391,37 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                                   color: Colors.white,
                                   fontSize: 28,
                                   fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton(
+                                  onPressed: () => Get.to(
+                                    () => const ManageCategoriesPage(),
+                                  ),
+                                  style: TextButton.styleFrom(
+                                    backgroundColor: Colors.white.withValues(
+                                      alpha: 0.15,
+                                    ),
+                                    minimumSize: const Size(0, 28),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 0,
+                                    ),
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  child: Text(
+                                    'Manage Project Categories',
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.95,
+                                      ),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      decoration: TextDecoration.none,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -398,34 +496,6 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                                 ),
                               ),
                               style: const TextStyle(color: Colors.white),
-                            ),
-                          ),
-                          SizedBox(height: 19),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: () =>
-                                  Get.to(() => const ManageCategoriesPage()),
-                              style: TextButton.styleFrom(
-                                backgroundColor: Colors.white.withValues(
-                                  alpha: 0.15,
-                                ),
-                                minimumSize: const Size(0, 28),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 0,
-                                ),
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              child: Text(
-                                'Manage Project Categories',
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.95),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  decoration: TextDecoration.none,
-                                ),
-                              ),
                             ),
                           ),
                         ],
