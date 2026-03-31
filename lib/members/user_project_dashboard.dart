@@ -9,6 +9,7 @@ import 'package:managementt/controller/profile_controller.dart';
 // ...existing code...
 import 'package:managementt/controller/user_dashboard_controller.dart';
 import 'package:managementt/controller/user_task_controller.dart';
+import 'package:managementt/model/task.dart';
 import 'package:managementt/service/task_service.dart';
 
 const _months = [
@@ -36,6 +37,26 @@ class UserProjectDashboard extends StatefulWidget {
 class _UserProjectDashboardState extends State<UserProjectDashboard> {
   late TextEditingController searchController;
   final searchQuery = ''.obs;
+
+  final selectedProgress = 'ALL'.obs;
+  final selectedPriority = 'ALL'.obs;
+  final selectedCategory = 'ALL'.obs;
+
+  static const Map<String, String> _projectProgressOptions = {
+    'ALL': 'ALL',
+    'IN_PROGRESS': 'IN PROGRESS',
+    'COMPLETED': 'COMPLETED',
+    'NOT_STARTED': 'NOT STARTED',
+    'OVERDUE': 'OVERDUE',
+  };
+
+  static const List<String> _projectPriorityOptions = [
+    'ALL',
+    'Critical',
+    'High',
+    'Moderate',
+    'Low',
+  ];
 
   @override
   void initState() {
@@ -77,6 +98,265 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
 
   final dc = Get.find<UserDashboardController>();
   final taskController = Get.find<UserTaskController>();
+
+  List<String> get _projectCategoryOptions {
+    final categories = <String>{};
+    for (final project in taskController.userProjects) {
+      final category = (project.category ?? '').trim();
+      if (category.isNotEmpty) categories.add(category);
+    }
+    return ['ALL', ...categories];
+  }
+
+  void _onProgressChanged(String value) {
+    selectedProgress.value = value;
+    if (value != 'ALL') {
+      selectedPriority.value = 'ALL';
+      selectedCategory.value = 'ALL';
+    }
+  }
+
+  void _onPriorityChanged(String value) {
+    selectedPriority.value = value;
+    if (value != 'ALL') {
+      selectedProgress.value = 'ALL';
+      selectedCategory.value = 'ALL';
+    }
+  }
+
+  void _onCategoryChanged(String value) {
+    selectedCategory.value = value;
+    if (value != 'ALL') {
+      selectedProgress.value = 'ALL';
+      selectedPriority.value = 'ALL';
+    }
+  }
+
+  bool _matchesPriority(String projectPriority, String selected) {
+    switch (selected) {
+      case 'Critical':
+        return projectPriority == 'Critical' || projectPriority == 'HIGH';
+      case 'High':
+        return projectPriority == 'High';
+      case 'Moderate':
+        return projectPriority == 'Moderate' || projectPriority == 'MEDIUM';
+      case 'Low':
+        return projectPriority == 'Low' || projectPriority == 'LOW';
+      case 'ALL':
+      default:
+        return true;
+    }
+  }
+
+  List<Task> getFilteredProjects() {
+    final projects = taskController.userProjects;
+    final query = searchQuery.value.trim().toLowerCase();
+
+    var filtered = projects.where((t) {
+      if (query.isEmpty) return true;
+      return t.title.toLowerCase().contains(query);
+    }).toList();
+
+    if (selectedProgress.value != 'ALL') {
+      filtered = filtered.where((t) {
+        final status = (t.status ?? '').toUpperCase();
+        switch (selectedProgress.value) {
+          case 'IN_PROGRESS':
+            return status == 'IN_PROGRESS';
+          case 'COMPLETED':
+            return status == 'DONE' || status == 'COMPLETED';
+          case 'NOT_STARTED':
+            return status == 'NOT_STARTED' || status == 'TODO';
+          case 'OVERDUE':
+            return status == 'OVERDUE';
+          case 'ALL':
+          default:
+            return true;
+        }
+      }).toList();
+    }
+
+    if (selectedPriority.value != 'ALL') {
+      filtered = filtered.where((t) {
+        final priority = t.priority.trim().toUpperCase();
+        return _matchesPriority(priority, selectedPriority.value);
+      }).toList();
+    }
+
+    if (selectedCategory.value != 'ALL') {
+      filtered = filtered.where((t) {
+        final taskCategory = (t.category ?? '').trim().toLowerCase();
+        return taskCategory == selectedCategory.value.trim().toLowerCase();
+      }).toList();
+    }
+
+    return filtered;
+  }
+
+  Widget _buildProjectFiltersRow() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Obx(
+          () => Row(
+            children: [
+              Expanded(
+                child: _buildFilterDropdown(
+                  label: 'Progress',
+                  value: selectedProgress.value,
+                  hintText: 'Select progress',
+                  options: _projectProgressOptions.keys.toList(),
+                  labelBuilder: (value) => _projectProgressOptions[value] ?? value,
+                  onChanged: (value) {
+                    if (value == null) return;
+                    _onProgressChanged(value);
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildFilterDropdown(
+                  label: 'Priority',
+                  value: selectedPriority.value,
+                  hintText: 'Select priority',
+                  options: _projectPriorityOptions,
+                  labelBuilder: (value) => value,
+                  onChanged: (value) {
+                    if (value == null) return;
+                    _onPriorityChanged(value);
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildFilterDropdown(
+                  label: 'Category',
+                  value: selectedCategory.value,
+                  hintText: 'Select category',
+                  options: _projectCategoryOptions,
+                  labelBuilder: (value) => value,
+                  onChanged: (value) {
+                    if (value == null) return;
+                    _onCategoryChanged(value);
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFilterDropdown({
+    required String label,
+    required String value,
+    required String hintText,
+    required List<String> options,
+    required String Function(String value) labelBuilder,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double cappedMenuWidth =
+            (constraints.maxWidth - 16).clamp(0.0, constraints.maxWidth).toDouble();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.75),
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            SizedBox(
+              height: 40,
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                  scrollbarTheme: ScrollbarThemeData(
+                    thumbVisibility: WidgetStateProperty.all(false),
+                    trackVisibility: WidgetStateProperty.all(false),
+                    thickness: WidgetStateProperty.all(0),
+                    radius: const Radius.circular(0),
+                  ),
+                ),
+                child: DropdownButtonFormField<String>(
+                  value: value,
+                  isExpanded: true,
+                  icon: const Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                  dropdownColor: AppColors.primary,
+                  borderRadius: BorderRadius.circular(12),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  menuMaxHeight: 240,
+                  decoration: InputDecoration(
+                    hintText: hintText,
+                    hintStyle: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      fontSize: 11,
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withValues(alpha: 0.12),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.18),
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        width: 1.2,
+                      ),
+                    ),
+                  ),
+                  items: options
+                      .map(
+                        (option) => DropdownMenuItem<String>(
+                          value: option,
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: cappedMenuWidth,
+                            ),
+                            child: Text(
+                              labelBuilder(option),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: onChanged,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -172,6 +452,10 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
 
                       const SizedBox(height: 14),
 
+                      _buildProjectFiltersRow(),
+
+                      const SizedBox(height: 14),
+
                       /// SEARCH
                       SizedBox(
                         height: 44,
@@ -215,16 +499,7 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
                       );
                     }
 
-                    final projects = taskController.userProjects;
-
-                    final query = searchQuery.value.trim().toLowerCase();
-                    final filtered = query.isEmpty
-                        ? projects
-                        : projects
-                              .where(
-                                (t) => t.title.toLowerCase().contains(query),
-                              )
-                              .toList();
+                    final filtered = getFilteredProjects();
 
                     if (filtered.isEmpty) {
                       return Padding(
