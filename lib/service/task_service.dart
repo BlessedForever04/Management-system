@@ -115,6 +115,15 @@ class TaskService {
       throw Exception('Failed to fetch collaborators ' + response.body);
     }
   }
+  Future<List<Task>> getDependencies(String id) async {
+    final response = await _api.get('/tasks/dependency/$id');
+    if (response.statusCode == 200) {
+      final List data = jsonDecode(response.body);
+      return data.map((e) => Task.fromJson(e)).toList();
+    } else {
+      throw Exception('Failed to fetch dependencies ' + response.body);
+    }
+  }
 
   Future<void> updateTask(String id, Task newTask) async {
     final response = await _api.put(
@@ -233,6 +242,15 @@ class TaskService {
       return List<Remark>.from(data.map((e) => Remark.fromJson(e)));
     } else {
       throw Exception('Failed to fetch remarks');
+    }
+  }
+
+  Future <bool> checkForSubmit(String taskId) async {
+    final response = await _api.get('/tasks/checkForSubmit/$taskId');
+    if (response.statusCode == 200) {
+      return response.body == 'true';
+    } else {
+      throw Exception('Failed to check submission status');
     }
   }
 }

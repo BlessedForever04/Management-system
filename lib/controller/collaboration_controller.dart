@@ -6,6 +6,7 @@ class CollaborationController extends GetxController {
   var collaborators = <Task>[].obs;
   var projects = <Task>[].obs;
   var tasksOfCollaboration = <String, List<Task>>{}.obs;
+  var dependencies = <Task>[].obs;
 
   var isLoading = false.obs;
 
@@ -68,8 +69,27 @@ class CollaborationController extends GetxController {
     }
   }
 
+  Future<void> getDependencies(String projectId) async {
+    try {
+      final results = await TaskService().getDependencies(projectId);
+      dependencies.value = results;
+
+      dependencies.refresh();
+      print(
+        'CollaborationController: Fetched ${dependencies.length} dependencies',
+      );
+    } catch (e) {
+      // ignore: avoid_print
+      print('CollaborationController: Failed to fetch dependencies — $e');
+      dependencies.value = [];
+    }
+  }
+
+  var loadingTasks = false.obs;
+
   Future<void> getAllTasksByCollaboration(String projectId) async {
     try {
+      loadingTasks.value = true;
       final results = await TaskService().getAllTasksByCollaboration(projectId);
 
       tasksOfCollaboration.value = results;
@@ -83,6 +103,8 @@ class CollaborationController extends GetxController {
     } catch (e) {
       print('CollaborationController: Failed to fetch tasks — $e');
       tasksOfCollaboration.value = {};
+    } finally {
+      loadingTasks.value = false;
     }
   }
 

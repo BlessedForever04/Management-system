@@ -4,6 +4,7 @@ import 'package:managementt/admin/add_task.dart';
 import 'package:managementt/components/app_colors.dart';
 import 'package:managementt/components/message_page.dart';
 import 'package:managementt/controller/auth_controller.dart';
+import 'package:managementt/controller/collaboration_controller.dart';
 import 'package:managementt/controller/task_controller.dart';
 import 'package:managementt/model/task.dart';
 
@@ -19,6 +20,8 @@ class UserTaskDetailPage extends StatefulWidget {
 class _UserTaskDetailPageState extends State<UserTaskDetailPage> {
   final TaskController _taskController = Get.find<TaskController>();
   final RxList<Task> _subtasks = <Task>[].obs;
+  final CollaborationController _collaborationController =
+      Get.find<CollaborationController>();
 
   String get _normalizedRole =>
       AuthController.to.role.value.trim().toUpperCase();
@@ -59,6 +62,7 @@ class _UserTaskDetailPageState extends State<UserTaskDetailPage> {
   void initState() {
     super.initState();
     _loadSubtasks();
+    _collaborationController.getDependencies(widget.task.id!);
   }
 
   void _loadSubtasks() {
@@ -69,6 +73,11 @@ class _UserTaskDetailPageState extends State<UserTaskDetailPage> {
     _subtasks.value = _taskController.tasks
         .where((t) => t.parentId == taskId)
         .toList();
+  }
+
+  bool checkDependencies() {
+    List<Task> dependencies = _collaborationController.dependencies();
+    return dependencies.map((e) => e.status != "DONE").toList().isNotEmpty;
   }
 
   Future<void> _convertTaskToProjectAndAddSubtasks() async {
@@ -137,7 +146,9 @@ class _UserTaskDetailPageState extends State<UserTaskDetailPage> {
       actorRole: AuthController.to.role.value,
     );
 
-    if (ok) {
+    final canSubmit = await _taskController.checkForSubmit(taskId);
+
+    if (ok && canSubmit) {
       setState(() {
         widget.task.status = 'REVIEW';
       });
@@ -147,6 +158,15 @@ class _UserTaskDetailPageState extends State<UserTaskDetailPage> {
         backgroundColor: AppColors.success,
         colorText: Colors.white,
       );
+    } else {
+      if (!canSubmit) {
+        Get.snackbar(
+          'Error',
+          'Failed to submit for review: some dependencies are not met.',
+          backgroundColor: AppColors.error,
+          colorText: Colors.white,
+        );
+      }
     }
   }
 
@@ -399,6 +419,122 @@ class _UserTaskDetailPageState extends State<UserTaskDetailPage> {
                     ),
                   ),
                   const SizedBox(height: 20),
+                  Obx(() {
+                    final dependencies = _collaborationController.dependencies;
+
+                    if (dependencies.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.04),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          /// 🔹 Header
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.link,
+                                  size: 18,
+                                  color: Colors.red,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                'Dependencies',
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w700),
+                              ),
+                              const Spacer(),
+                              Text(
+                                '${dependencies.length}',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 14),
+
+                          /// 🔹 List
+                          Column(
+                            children: dependencies.map((dep) {
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 10),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF8FAFC),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.grey.withOpacity(0.08),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    /// Status Indicator
+                                    Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        color: _getStatusColor(dep.status),
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+
+                                    /// Title + Status
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            dep.title,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            dep.status ?? 'N/A',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 10),
                   // Buttons section
                   Row(
                     children: [
@@ -493,6 +629,19 @@ class _UserTaskDetailPageState extends State<UserTaskDetailPage> {
         ),
       ),
     );
+  }
+
+  Color _getStatusColor(String? status) {
+    switch (status?.toLowerCase()) {
+      case 'completed':
+        return Colors.green;
+      case 'in progress':
+        return Colors.orange;
+      case 'pending':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
   }
 }
 

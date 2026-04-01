@@ -247,4 +247,16 @@ class TaskController extends GetxController {
       isLoading.value = false;
     }
   }
+
+  Future<bool> checkForSubmit(String taskId) async {
+    isLoading.value = true;
+    try {
+      return await _taskService.checkForSubmit(taskId);
+    } catch (e) {
+      print('TaskController: Failed to check submission status — $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
 }
