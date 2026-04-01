@@ -6,6 +6,8 @@ class ProjectCard extends StatelessWidget {
   final String? subtitle;
   final String? dueText;
   final String? status;
+  final String? priority;
+  final String? state;
   final double progress;
   final double? timeProgress;
   final String progressLabel;
@@ -21,6 +23,8 @@ class ProjectCard extends StatelessWidget {
     this.subtitle,
     this.dueText,
     this.status,
+    this.priority,
+    this.state,
     this.progress = 0.55,
     this.timeProgress,
     this.progressLabel = 'Project Progress',
@@ -93,6 +97,29 @@ class ProjectCard extends StatelessWidget {
                             color: Colors.blueGrey.withValues(alpha: 0.9),
                           ),
                         ),
+                      if (priority != null || state != null) ...[
+                        const SizedBox(height: 6),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            if (priority != null)
+                              _MetaChip(
+                                label: priority!,
+                                bg: AppColors.primary.withValues(alpha: 0.12),
+                                fg: AppColors.alertTitle,
+                              ),
+                            if (state != null)
+                              _MetaChip(
+                                label: state!,
+                                bg: AppColors.alertTitle.withValues(
+                                  alpha: 0.12,
+                                ),
+                                fg: AppColors.alertTitle,
+                              ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -275,6 +302,40 @@ class _ProgressTrack extends StatelessWidget {
           valueColor: AlwaysStoppedAnimation<Color>(color),
         ),
       ],
+    );
+  }
+}
+
+class _MetaChip extends StatelessWidget {
+  final String label;
+  final Color bg;
+  final Color fg;
+
+  const _MetaChip({required this.label, required this.bg, required this.fg});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: TextStyle(
+              color: fg,
+              fontWeight: FontWeight.w700,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

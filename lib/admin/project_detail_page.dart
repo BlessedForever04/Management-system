@@ -516,6 +516,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
+
                               const SizedBox(height: 4),
                             ],
                           ),

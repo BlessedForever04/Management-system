@@ -182,6 +182,43 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
     }
   }
 
+  String _statusLabel(String? status) {
+    final s = (status ?? '').trim().toUpperCase();
+    switch (s) {
+      case 'IN_PROGRESS':
+        return 'In Progress';
+      case 'NOT_STARTED':
+      case 'TODO':
+        return 'Todo';
+      case 'OVERDUE':
+        return 'Overdue';
+      case 'DONE':
+      case 'COMPLETED':
+        return 'Done';
+      default:
+        return 'Planned';
+    }
+  }
+
+  String _priorityLabel(String raw) {
+    final p = raw.trim();
+    if (p.isEmpty) return 'N/A';
+    final up = p.toUpperCase();
+    switch (up) {
+      case 'CRITICAL':
+        return 'Critical';
+      case 'HIGH':
+        return 'High';
+      case 'MODERATE':
+      case 'MEDIUM':
+        return 'Moderate';
+      case 'LOW':
+        return 'Low';
+      default:
+        return p;
+    }
+  }
+
   Widget _buildProjectFiltersRow() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -574,6 +611,8 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                           status: total > 0
                               ? '${task.completedTask}/$total'
                               : null,
+                          priority: _priorityLabel(task.priority),
+                          state: _statusLabel(task.status),
                           progress: task.progress / 100,
                           timeProgress: DateTimeHelper.remainingTimeRatio(
                             task.startDate,
