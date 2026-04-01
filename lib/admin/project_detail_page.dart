@@ -26,6 +26,7 @@ class ProjectDetailPage extends StatefulWidget {
 }
 
 class _ProjectDetailPageState extends State<ProjectDetailPage> {
+  late Task _project;
   final TaskController _taskController = Get.find<TaskController>();
   final MemberController _memberController = Get.find<MemberController>();
   final RxString _selectedFilter = 'ALL'.obs;
@@ -33,18 +34,34 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   final CollaborationController collaborationController =
       Get.find<CollaborationController>();
 
-  void _openProjectEditor(Task project) {
-    Get.to(() => AddTask(defaultType: 'PROJECT', taskToEdit: project));
+  Future<void> _openProjectEditor(Task project) async {
+    final result = await Get.to(
+      () => AddTask(defaultType: 'PROJECT', taskToEdit: project),
+    );
+
+    if (result == true) {
+      await _taskController.getAllTask();
+      final updated = _taskController.projects.firstWhere(
+        (p) => p.id == project.id,
+        orElse: () => project,
+      );
+      setState(() => _project = updated);
+    }
   }
 
-  void _openTaskEditor(Task task) {
-    Get.to(
+  Future<void> _openTaskEditor(Task task) async {
+    final result = await Get.to(
       () => AddTask(
         defaultType: task.type ?? 'TASK',
         parentId: task.parentId,
         taskToEdit: task,
       ),
     );
+
+    if (result == true) {
+      await _taskController.getAllTask();
+      setState(() {});
+    }
   }
 
   Future<void> _undoCompletedTask(Task task) async {
@@ -164,6 +181,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   @override
   void initState() {
     super.initState();
+    _project = widget.project;
     if (_memberController.members.isEmpty &&
         !_memberController.isLoading.value) {
       _memberController.getMembers();
@@ -171,7 +189,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   }
 
   List<Task> get _projectTasks {
-    final parentId = widget.project.id;
+    final parentId = _project.id;
     if (parentId == null || parentId.isEmpty) {
       return <Task>[];
     }
@@ -216,7 +234,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   }
 
   int _countFor(String filter) {
-    final parentId = widget.project.id;
+    final parentId = _project.id;
     if (parentId == null || parentId.isEmpty) return 0;
 
     final all = _taskController.tasks.where((t) {
@@ -308,7 +326,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     return name.isEmpty ? ownerId : name;
   }
 
-  String get _projectOwnerId => widget.project.ownerId.trim();
+  String get _projectOwnerId => _project.ownerId.trim();
 
   String get _normalizedRole =>
       AuthController.to.role.value.trim().toUpperCase();
@@ -384,7 +402,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
       }
     }
 
-    final projectOwner = _memberNameById(widget.project.ownerId);
+    final projectOwner = _memberNameById(_project.ownerId);
     if (projectOwner.isNotEmpty && !result.contains(projectOwner)) {
       result.add(projectOwner);
     }
@@ -402,7 +420,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   @override
   Widget build(BuildContext context) {
     final topPad = MediaQuery.of(context).padding.top;
-    final project = widget.project;
+    final project = _project;
     final remainingTimeProgress = DateTimeHelper.remainingTimeRatio(
       project.startDate,
       project.deadLine,
@@ -830,9 +848,9 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                         Get.to(
                           () => AddTask(
                             defaultType: 'TASK',
-                            parentId: widget.project.id,
+                            parentId: _project.id,
                           ),
-                          arguments: widget.project.id,
+                          arguments: _project.id,
                         );
                       },
                       icon: const Icon(Icons.add, size: 18),

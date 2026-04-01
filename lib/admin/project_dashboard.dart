@@ -165,15 +165,17 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
   }
 
   bool _matchesPriority(String projectPriority, String selected) {
-    switch (selected) {
-      case 'Critical':
-        return projectPriority == 'Critical' || projectPriority == 'HIGH';
-      case 'High':
-        return projectPriority == 'High';
-      case 'Moderate':
-        return projectPriority == 'Moderate' || projectPriority == 'MEDIUM';
-      case 'Low':
-        return projectPriority == 'Low' || projectPriority == 'LOW';
+    final p = projectPriority.trim().toUpperCase();
+    switch (selected.trim().toUpperCase()) {
+      case 'CRITICAL':
+        return p == 'CRITICAL';
+      case 'HIGH':
+        return p == 'HIGH';
+      case 'MODERATE':
+      case 'MEDIUM':
+        return p == 'MODERATE' || p == 'MEDIUM';
+      case 'LOW':
+        return p == 'LOW';
       case 'ALL':
       default:
         return true;
@@ -281,10 +283,10 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                     color: Colors.white,
                     size: 18,
                   ),
-                  dropdownColor: Colors.white,
+                  dropdownColor: AppColors.alertTitle,
                   borderRadius: BorderRadius.circular(12),
                   style: const TextStyle(
-                    color: Color(0xFF111827),
+                    color: Colors.white,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
@@ -292,11 +294,11 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                   decoration: InputDecoration(
                     hintText: hintText,
                     hintStyle: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.85),
+                      color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 12,
                     ),
                     filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.16),
+                    fillColor: Colors.white.withValues(alpha: 0.14),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 6,
@@ -308,13 +310,13 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
-                        color: Colors.white.withValues(alpha: 0.35),
-                        width: 1.1,
+                        color: Colors.white.withValues(alpha: 0.7),
+                        width: 1.15,
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.white, width: 1.3),
+                      borderSide: BorderSide(color: Colors.white, width: 1.35),
                     ),
                   ),
                   items: options
@@ -332,9 +334,7 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                                   height: 6,
                                   margin: const EdgeInsets.only(right: 8),
                                   decoration: BoxDecoration(
-                                    color: AppColors.primary.withValues(
-                                      alpha: 0.9,
-                                    ),
+                                    color: Colors.white.withValues(alpha: 0.9),
                                     shape: BoxShape.circle,
                                   ),
                                 ),

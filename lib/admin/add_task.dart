@@ -27,6 +27,23 @@ class AddTask extends StatefulWidget {
 class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
   static const String _noneCategoryValue = '__NONE__';
 
+  String _normalizePriorityLabel(String raw) {
+    final p = raw.trim().toUpperCase();
+    switch (p) {
+      case 'CRITICAL':
+        return 'Critical';
+      case 'HIGH':
+        return 'High';
+      case 'MODERATE':
+      case 'MEDIUM':
+        return 'Moderate';
+      case 'LOW':
+        return 'Low';
+      default:
+        return '';
+    }
+  }
+
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController memberSearchController = TextEditingController();
@@ -154,7 +171,7 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
 
     titleController.text = task.title;
     descriptionController.text = task.description;
-    priorityController.value = task.priority.toLowerCase();
+    priorityController.value = _normalizePriorityLabel(task.priority);
     selectedMemberId.value = task.ownerId;
     final category = (task.category ?? '').trim();
     final matchedCategory = _categoryController.categories.firstWhereOrNull(
@@ -1247,10 +1264,14 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
     final contributionText = contributionController.text.trim();
     int contributionValue = 0;
 
+    final normalizedPriority = _normalizePriorityLabel(
+      priorityController.value,
+    );
+
     if (titleController.text.isEmpty ||
         descriptionController.text.isEmpty ||
         selectedMemberId.value.isEmpty ||
-        priorityController.value.isEmpty) {
+        normalizedPriority.isEmpty) {
       Get.snackbar(
         "Error",
         "Please fill title, description, assignee, and priority",
@@ -1299,7 +1320,7 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
       id: widget.taskToEdit?.id,
       title: titleController.text,
       description: descriptionController.text,
-      priority: priorityController.value,
+      priority: normalizedPriority,
       type: widget.taskToEdit?.type ?? widget.defaultType,
       status: widget.taskToEdit?.status ?? 'NOT_STARTED',
       category: selectedCategory.value == _noneCategoryValue
@@ -1329,7 +1350,7 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
     }
 
     await _memberController.getMembers();
-    Get.back();
+    Get.back(result: true);
   }
 }
 
