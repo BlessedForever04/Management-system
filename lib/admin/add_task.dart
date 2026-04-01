@@ -188,6 +188,13 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
       widget.parentId != null &&
       widget.parentId!.isNotEmpty;
 
+  bool get _isTaskType =>
+      (widget.taskToEdit?.type ?? widget.defaultType).toUpperCase() == 'TASK';
+
+  String get _entityLabel => _isTaskType ? 'Task' : 'Project';
+
+  String get _entityLower => _entityLabel.toLowerCase();
+
   bool get _isEditMode =>
       widget.taskToEdit != null &&
       widget.taskToEdit!.id != null &&
@@ -290,7 +297,9 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
                           ),
                           const SizedBox(height: 20),
                           Text(
-                            _isEditMode ? "Modify\nTask" : "Create\nNew Task",
+                            _isEditMode
+                                ? "Modify\n$_entityLabel"
+                                : "Create\nNew $_entityLabel",
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 28,
@@ -302,10 +311,12 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
                           const SizedBox(height: 8),
                           Text(
                             _isEditMode
-                                ? "Update task details and assignment"
+                                ? "Update $_entityLower details and assignment"
                                 : _isProjectTask
                                 ? "Assign work and distribute the remaining project contribution"
-                                : "Assign work and set priorities for your team",
+                                : _isTaskType
+                                ? "Assign work and set priorities for your team"
+                                : "Plan the project, set priorities, and assign ownership",
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.7),
                               fontSize: 14,
@@ -354,11 +365,11 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _buildLabel("Task Title"),
+                                  _buildLabel("$_entityLabel Title"),
                                   const SizedBox(height: 8),
                                   _buildTextField(
                                     controller: titleController,
-                                    hint: "Enter task title",
+                                    hint: "Enter $_entityLower title",
                                     icon: Icons.title_rounded,
                                   ),
                                 ],
@@ -376,7 +387,7 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
                                   const SizedBox(height: 8),
                                   _buildTextField(
                                     controller: descriptionController,
-                                    hint: "Describe the task...",
+                                    hint: "Describe the $_entityLower...",
                                     icon: Icons.description_outlined,
                                     maxLines: 3,
                                   ),
@@ -916,7 +927,7 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  isEdit ? 'Modify Task' : 'Create Task',
+                  isEdit ? 'Modify $_entityLabel' : 'Create $_entityLabel',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

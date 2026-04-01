@@ -193,7 +193,8 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                   value: selectedProgress.value,
                   hintText: 'Select progress',
                   options: _projectProgressOptions.keys.toList(),
-                  labelBuilder: (value) => _projectProgressOptions[value] ?? value,
+                  labelBuilder: (value) =>
+                      _projectProgressOptions[value] ?? value,
                   onChanged: (value) {
                     if (value == null) return;
                     _onProgressChanged(value);
@@ -245,8 +246,9 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
   }) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final double cappedMenuWidth =
-          (constraints.maxWidth - 16).clamp(0.0, constraints.maxWidth).toDouble();
+        final double cappedMenuWidth = (constraints.maxWidth - 16)
+            .clamp(0.0, constraints.maxWidth)
+            .toDouble();
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,6 +351,7 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
   Widget build(BuildContext context) {
     final topPad = MediaQuery.of(context).padding.top;
     final bottomNavSpace = MediaQuery.of(context).padding.bottom + 80;
+    final headerHeight = topPad + 222;
 
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
@@ -363,7 +366,7 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
               /// HEADER
               SliverAppBar(
                 pinned: true,
-                expandedHeight: 260,
+                expandedHeight: headerHeight,
                 backgroundColor: Colors.transparent,
                 flexibleSpace: FlexibleSpaceBar(
                   background: Container(
