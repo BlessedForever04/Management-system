@@ -46,7 +46,7 @@ class _LoginPageState extends State<LoginPage> {
                         width: 60,
                         height: 60,
                         decoration: BoxDecoration(
-                          color: AppColors.primaryBlue,
+                          color: AppColors.primary,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
@@ -114,10 +114,14 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 40),
                       Obx(
                         () => _isLoading.value
-                            ? const Center(child: CircularProgressIndicator())
+                            ? const Center(
+                                child: CircularProgressIndicator(
+                                  color: AppColors.primary,
+                                ),
+                              )
                             : AppButton(
                                 text: "Login",
-                                buttonColor: AppColors.primaryBlue,
+                                buttonColor: AppColors.primary,
                                 onPressed: () async {
                                   final email = emailController.text.trim();
                                   final password = passwordController.text
@@ -179,7 +183,7 @@ InputDecoration _loginFieldDecoration(String label, {Widget? suffixIcon}) {
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(10),
-      borderSide: const BorderSide(color: Color(0xFFF59E0B)),
+      borderSide: const BorderSide(color: AppColors.primary),
     ),
     suffixIcon: suffixIcon,
   );

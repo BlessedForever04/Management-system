@@ -612,7 +612,7 @@ class _FilterChip extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? const Color(0xFF4338CA) : Colors.white,
+            color: isSelected ? AppColors.primary : Colors.white,
             fontSize: 12,
             fontWeight: FontWeight.w600,
           ),

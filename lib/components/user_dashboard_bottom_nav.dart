@@ -192,7 +192,7 @@ class _AddProjectButton extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: const LinearGradient(
-                colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
+                colors: [AppColors.primary, Color.fromARGB(223, 255, 175, 27)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),

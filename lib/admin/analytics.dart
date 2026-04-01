@@ -54,150 +54,150 @@ class AnalyticsPage extends StatelessWidget {
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ─── Header ───
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.fromLTRB(20, topPad + 16, 20, 24),
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF7C3AED), Color(0xFF4338CA)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ─── Header ───
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.fromLTRB(20, topPad + 16, 20, 24),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppColors.primary, AppColors.alertTitle],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(24),
+                        bottomRight: Radius.circular(24),
+                      ),
                     ),
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(24),
-                      bottomRight: Radius.circular(24),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Analytics',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: IconButton(
-                              icon: const Icon(
-                                Icons.tune_rounded,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Analytics',
+                              style: TextStyle(
                                 color: Colors.white,
-                                size: 20,
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: -0.5,
                               ),
-                              onPressed: () {},
-                              constraints: const BoxConstraints(
-                                minWidth: 40,
-                                minHeight: 40,
-                              ),
-                              padding: EdgeInsets.zero,
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Performance overview · $_formattedDate',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          fontSize: 13,
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.tune_rounded,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                onPressed: () {},
+                                constraints: const BoxConstraints(
+                                  minWidth: 40,
+                                  minHeight: 40,
+                                ),
+                                padding: EdgeInsets.zero,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      // ─── Stat cards (reactive) ───
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _StatCard(
-                              icon: Icons.check_circle_outline_rounded,
-                              color: const Color(0xFF2ECC71),
-                              label: 'Completion',
-                              value: '${dc.completionPercent}%',
-                              subtitle: '$doneItems of $totalItems tasks',
-                            ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Performance overview · $_formattedDate',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 13,
                           ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: _StatCard(
-                              icon: Icons.schedule_rounded,
-                              color: const Color(0xFF3498DB),
-                              label: 'On‑Time',
-                              value: '${dc.onTimePercent}%',
-                              subtitle: '${dc.overdueTaskCount} overdue',
+                        ),
+                        const SizedBox(height: 20),
+                        // ─── Stat cards (reactive) ───
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _StatCard(
+                                icon: Icons.check_circle_outline_rounded,
+                                color: const Color(0xFF2ECC71),
+                                label: 'Completion',
+                                value: '${dc.completionPercent}%',
+                                subtitle: '$doneItems of $totalItems tasks',
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _StatCard(
-                              icon: Icons.speed_rounded,
-                              color: const Color(0xFFF39C12),
-                              label: 'Tasks',
-                              value: '$totalItems',
-                              subtitle: 'total items',
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _StatCard(
+                                icon: Icons.schedule_rounded,
+                                color: const Color(0xFF3498DB),
+                                label: 'On‑Time',
+                                value: '${dc.onTimePercent}%',
+                                subtitle: '${dc.overdueTaskCount} overdue',
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: _StatCard(
-                              icon: Icons.groups_rounded,
-                              color: const Color(0xFF9B59B6),
-                              label: 'Coverage',
-                              value: '${dc.coveragePercent}%',
-                              subtitle: '${dc.assignedCount} assigned',
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _StatCard(
+                                icon: Icons.speed_rounded,
+                                color: const Color(0xFFF39C12),
+                                label: 'Tasks',
+                                value: '$totalItems',
+                                subtitle: 'total items',
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _StatCard(
+                                icon: Icons.groups_rounded,
+                                color: const Color(0xFF9B59B6),
+                                label: 'Coverage',
+                                value: '${dc.coveragePercent}%',
+                                subtitle: '${dc.assignedCount} assigned',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                // ─── Task Velocity Trend Chart ───
-                const TaskVelocityChart(),
-                const SizedBox(height: 8),
-                // ─── Project Health (reactive) ───
-                ProjectHealthSection(items: dc.projectHealthItems),
-                const SizedBox(height: 8),
-                // ─── Team Task Distribution (reactive) ───
-                TeamTaskDistribution(teamData: dc.teamDistribution),
-                const SizedBox(height: 8),
-                // ─── Top Contributors (reactive) ───
-                TopContributors(contributors: dc.topContributors),
-                const SizedBox(height: 8),
-                // ─── Priority Breakdown (reactive) ───
-                PriorityBreakdown(
-                  highCount: dc.highPriorityCount,
-                  mediumCount: dc.mediumPriorityCount,
-                  lowCount: dc.lowPriorityCount,
-                ),
-                const SizedBox(height: 8),
-                // ─── Deadlines at Risk (reactive) ───
-                DeadlinesAtRisk(
-                  tasks: dc.atRiskTasks,
-                  getMemberName: dc.getMemberName,
-                  getMemberInitials: dc.getMemberInitials,
-                ),
-                // bottom padding for nav bar
-                const SizedBox(height: 100),
-              ],
+                  const SizedBox(height: 20),
+                  // ─── Task Velocity Trend Chart ───
+                  const TaskVelocityChart(),
+                  const SizedBox(height: 8),
+                  // ─── Project Health (reactive) ───
+                  ProjectHealthSection(items: dc.projectHealthItems),
+                  const SizedBox(height: 8),
+                  // ─── Team Task Distribution (reactive) ───
+                  TeamTaskDistribution(teamData: dc.teamDistribution),
+                  const SizedBox(height: 8),
+                  // ─── Top Contributors (reactive) ───
+                  TopContributors(contributors: dc.topContributors),
+                  const SizedBox(height: 8),
+                  // ─── Priority Breakdown (reactive) ───
+                  PriorityBreakdown(
+                    highCount: dc.highPriorityCount,
+                    mediumCount: dc.mediumPriorityCount,
+                    lowCount: dc.lowPriorityCount,
+                  ),
+                  const SizedBox(height: 8),
+                  // ─── Deadlines at Risk (reactive) ───
+                  DeadlinesAtRisk(
+                    tasks: dc.atRiskTasks,
+                    getMemberName: dc.getMemberName,
+                    getMemberInitials: dc.getMemberInitials,
+                  ),
+                  // bottom padding for nav bar
+                  const SizedBox(height: 100),
+                ],
+              ),
             ),
-          ),
           );
         }),
       ),

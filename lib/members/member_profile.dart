@@ -6,6 +6,7 @@ import 'package:managementt/components/app_render_entrance.dart';
 import 'package:managementt/controller/admin_nav_controller.dart';
 import 'package:managementt/controller/auth_controller.dart';
 import 'package:managementt/controller/profile_controller.dart';
+import 'package:managementt/components/app_colors.dart';
 
 class MemberProfilePage extends StatefulWidget {
   const MemberProfilePage({super.key});
@@ -82,7 +83,10 @@ class _MemberProfilePageState extends State<MemberProfilePage> {
                   padding: EdgeInsets.fromLTRB(16, topPad + 12, 16, 20),
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Color(0xFF7C3AED), Color(0xFF4338CA)],
+                      colors: [
+                        AppColors.primary,
+                        Color.fromARGB(255, 255, 122, 34),
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -155,7 +159,7 @@ class _MemberProfilePageState extends State<MemberProfilePage> {
                             width: 56,
                             height: 56,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF4F46E5),
+                              color: AppColors.primary,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: Colors.white.withValues(alpha: 0.25),
@@ -268,13 +272,13 @@ class _MemberProfilePageState extends State<MemberProfilePage> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF6366F1).withValues(alpha: 0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(
                     Icons.person_outline_rounded,
                     size: 18,
-                    color: Color(0xFF6366F1),
+                    color: AppColors.primary,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -296,7 +300,7 @@ class _MemberProfilePageState extends State<MemberProfilePage> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6366F1).withValues(alpha: 0.1),
+                        color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Row(
@@ -304,13 +308,13 @@ class _MemberProfilePageState extends State<MemberProfilePage> {
                           Icon(
                             Icons.edit_outlined,
                             size: 14,
-                            color: Color(0xFF6366F1),
+                            color: AppColors.primary,
                           ),
                           SizedBox(width: 4),
                           Text(
                             'Edit',
                             style: TextStyle(
-                              color: Color(0xFF6366F1),
+                              color: AppColors.primary,
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
@@ -326,7 +330,7 @@ class _MemberProfilePageState extends State<MemberProfilePage> {
             _InfoRow(
               icon: Icons.email_outlined,
               text: pc.memberEmail,
-              iconColor: const Color(0xFF6366F1),
+              iconColor: AppColors.primary,
             ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
@@ -420,7 +424,7 @@ class _MemberProfilePageState extends State<MemberProfilePage> {
                         () => Container(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF6366F1),
+                            color: AppColors.primary,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Center(
@@ -452,7 +456,7 @@ class _MemberProfilePageState extends State<MemberProfilePage> {
               _InfoRow(
                 icon: Icons.badge_outlined,
                 text: pc.memberName,
-                iconColor: const Color(0xFF6366F1),
+                iconColor: AppColors.primary,
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
@@ -464,7 +468,7 @@ class _MemberProfilePageState extends State<MemberProfilePage> {
               _InfoRow(
                 icon: Icons.phone_outlined,
                 text: pc.memberPhone,
-                iconColor: const Color(0xFF6366F1),
+                iconColor: AppColors.primary,
               ),
             ],
           ],
@@ -485,10 +489,10 @@ class _MemberProfilePageState extends State<MemberProfilePage> {
           width: 34,
           height: 34,
           decoration: BoxDecoration(
-            color: const Color(0xFF6366F1).withValues(alpha: 0.1),
+            color: AppColors.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, size: 18, color: const Color(0xFF6366F1)),
+          child: Icon(icon, size: 18, color: AppColors.primary),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -516,7 +520,7 @@ class _MemberProfilePageState extends State<MemberProfilePage> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFF6366F1)),
+                borderSide: const BorderSide(color: AppColors.primary),
               ),
             ),
             style: const TextStyle(fontSize: 14, color: Color(0xFF374151)),

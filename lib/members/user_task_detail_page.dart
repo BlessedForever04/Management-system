@@ -167,7 +167,7 @@ class _UserTaskDetailPageState extends State<UserTaskDetailPage> {
               padding: EdgeInsets.fromLTRB(16, topPad + 12, 16, 22),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Color(0xFF6366F1), Color(0xFF3B5BEE)],
+                  colors: [AppColors.primary, AppColors.alertTitle],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),

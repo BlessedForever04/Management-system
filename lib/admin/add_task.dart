@@ -242,11 +242,11 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
                 colors: [
                   Color.lerp(
                     AppColors.primary,
-                    const Color(0xFF7C3AED),
+                    AppColors.alertTitle,
                     _bgController.value,
                   )!,
                   Color.lerp(
-                    const Color(0xFF4338CA),
+                    AppColors.alertTitle,
                     AppColors.primary,
                     _bgController.value,
                   )!,
@@ -897,11 +897,11 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
               colors: [
                 Color.lerp(
                   AppColors.primary,
-                  const Color(0xFF7C3AED),
+                  AppColors.alertTitle,
                   _bgController.value,
                 )!,
                 Color.lerp(
-                  const Color(0xFF4338CA),
+                  AppColors.alertTitle,
                   AppColors.primary,
                   _bgController.value,
                 )!,

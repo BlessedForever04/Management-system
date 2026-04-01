@@ -205,7 +205,7 @@ class EmployeeDetailsPage extends StatelessWidget {
                   background: Container(
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Color(0xFF7C3AED), Color(0xFF4338CA)],
+                        colors: [AppColors.primary, AppColors.alertTitle],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
