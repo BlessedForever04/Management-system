@@ -150,6 +150,43 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
     }
   }
 
+  String _statusLabel(String? status) {
+    final s = (status ?? '').trim().toUpperCase();
+    switch (s) {
+      case 'IN_PROGRESS':
+        return 'In Progress';
+      case 'NOT_STARTED':
+      case 'TODO':
+        return 'Todo';
+      case 'OVERDUE':
+        return 'Overdue';
+      case 'DONE':
+      case 'COMPLETED':
+        return 'Done';
+      default:
+        return 'Planned';
+    }
+  }
+
+  String _priorityLabel(String raw) {
+    final p = raw.trim();
+    if (p.isEmpty) return 'N/A';
+    final up = p.toUpperCase();
+    switch (up) {
+      case 'CRITICAL':
+        return 'Critical';
+      case 'HIGH':
+        return 'High';
+      case 'MODERATE':
+      case 'MEDIUM':
+        return 'Moderate';
+      case 'LOW':
+        return 'Low';
+      default:
+        return p;
+    }
+  }
+
   List<Task> getFilteredProjects() {
     final projects = taskController.userProjects;
     final query = searchQuery.value.trim().toLowerCase();
@@ -560,6 +597,8 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
                           status: totalSub > 0
                               ? '${project.completedTask}/$totalSub tasks'
                               : null,
+                          priority: _priorityLabel(project.priority),
+                          state: _statusLabel(project.status),
                           progress: project.progress / 100.0,
                           timeProgress: DateTimeHelper.remainingTimeRatio(
                             project.startDate,
