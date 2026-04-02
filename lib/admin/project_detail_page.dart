@@ -222,6 +222,57 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     }
   }
 
+  Future<void> _disapproveTask(Task task) async {
+    final taskId = task.id;
+    if (taskId == null || taskId.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Task id is missing. Please refresh and try again.',
+        backgroundColor: AppColors.error,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    if (!_canApproveTasks) {
+      Get.snackbar(
+        'Action blocked',
+        'Only the project owner or an admin can disapprove this task.',
+        backgroundColor: AppColors.error,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    final role = _normalizedRole;
+    final actorId = _resolveActorIdForApproval();
+
+    if (actorId.isEmpty) {
+      Get.snackbar(
+        'Action blocked',
+        'We could not resolve your identity for disapproval. Please relaunch or contact an admin.',
+        backgroundColor: AppColors.error,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    final ok = await _taskController.disapproveTaskReview(
+      taskId: taskId,
+      actorId: actorId,
+      actorRole: role,
+    );
+
+    if (ok) {
+      Get.snackbar(
+        'Disapproved',
+        'Task moved back to TODO for rework.',
+        backgroundColor: AppColors.success,
+        colorText: Colors.white,
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -1016,6 +1067,11 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                       final status = (t.status ?? '').toUpperCase();
                       final showApprove =
                           status == 'REVIEW' && _canApproveTasks;
+                      final taskId = t.id;
+                      final showTaskChat =
+                          _canApproveTasks &&
+                          taskId != null &&
+                          taskId.isNotEmpty;
                       return _TaskCard(
                         task: t,
                         deadlineText: _deadlineText(t.deadLine),
@@ -1032,6 +1088,15 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                             ? () => _deleteTask(t)
                             : null,
                         onApprove: showApprove ? () => _approveTask(t) : null,
+                        onDisapprove: showApprove
+                            ? () => _disapproveTask(t)
+                            : null,
+                        onOpenChat: showTaskChat
+                            ? () => Get.to(
+                                () => const MessagePage(),
+                                arguments: taskId,
+                              )
+                            : null,
                         onAddDependency: () => Get.to(
                           () => ManageDependency(
                             taskId: t.id ?? '',
@@ -1147,6 +1212,8 @@ class _TaskCard extends StatelessWidget {
   final VoidCallback? onUndone;
   final VoidCallback? onDelete;
   final VoidCallback? onApprove;
+  final VoidCallback? onDisapprove;
+  final VoidCallback? onOpenChat;
   final VoidCallback? onAddDependency;
 
   const _TaskCard({
@@ -1157,6 +1224,8 @@ class _TaskCard extends StatelessWidget {
     this.onUndone,
     this.onDelete,
     this.onApprove,
+    this.onDisapprove,
+    this.onOpenChat,
     this.onAddDependency,
   });
 
@@ -1350,6 +1419,16 @@ class _TaskCard extends StatelessWidget {
                                 ),
                               ),
                             ),
+                          if (onOpenChat != null)
+                            IconButton(
+                              tooltip: 'Open task chat',
+                              onPressed: onOpenChat,
+                              icon: const Icon(
+                                Icons.chat_bubble_outline_rounded,
+                                size: 18,
+                                color: AppColors.alertTitle,
+                              ),
+                            ),
                         ],
                       ),
                       const SizedBox(height: 4),
@@ -1399,30 +1478,65 @@ class _TaskCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      if (onApprove != null) ...[
+                      if (onApprove != null || onDisapprove != null) ...[
                         const SizedBox(height: 10),
                         Align(
                           alignment: Alignment.centerLeft,
-                          child: ElevatedButton.icon(
-                            onPressed: onApprove,
-                            icon: const Icon(Icons.verified_rounded, size: 16),
-                            label: const Text('Approve Done'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF166534),
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              textStyle: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              if (onApprove != null)
+                                ElevatedButton.icon(
+                                  onPressed: onApprove,
+                                  icon: const Icon(
+                                    Icons.verified_rounded,
+                                    size: 16,
+                                  ),
+                                  label: const Text('Approve Done'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF166534),
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    textStyle: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                ),
+                              if (onDisapprove != null)
+                                ElevatedButton.icon(
+                                  onPressed: onDisapprove,
+                                  icon: const Icon(
+                                    Icons.undo_rounded,
+                                    size: 16,
+                                  ),
+                                  label: const Text('Disapprove'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFFB91C1C),
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    textStyle: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
                       ],

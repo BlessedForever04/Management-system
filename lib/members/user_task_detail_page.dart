@@ -259,9 +259,19 @@ class _UserTaskDetailPageState extends State<UserTaskDetailPage> {
                             Spacer(),
                             InkWell(
                               onTap: () {
+                                final taskId = task.id;
+                                if (taskId == null || taskId.isEmpty) {
+                                  Get.snackbar(
+                                    'Error',
+                                    'Task id is missing. Please refresh and try again.',
+                                    backgroundColor: AppColors.error,
+                                    colorText: Colors.white,
+                                  );
+                                  return;
+                                }
                                 Get.to(
-                                  () => MessagePage(),
-                                  arguments: task.parentId,
+                                  () => const MessagePage(),
+                                  arguments: taskId,
                                 );
                               },
                               child: const Icon(

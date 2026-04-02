@@ -222,6 +222,61 @@ class TaskController extends GetxController {
     }
   }
 
+  Future<bool> disapproveTaskReview({
+    required String taskId,
+    required String actorId,
+    required String actorRole,
+  }) async {
+    isLoading.value = true;
+    try {
+      await _taskService.transitionTaskStatus(
+        taskId,
+        'TODO',
+        actorId: actorId,
+        actorRole: actorRole,
+      );
+      await getAllTask();
+      _refreshRelated();
+      return true;
+    } catch (e) {
+      // Backward-compatible fallback for servers that only allow REVIEW/DONE transitions.
+      try {
+        final existing = await _taskService.getTaskById(taskId);
+        final updated = Task(
+          id: existing.id,
+          title: existing.title,
+          description: existing.description,
+          priority: existing.priority,
+          type: existing.type,
+          status: 'TODO',
+          category: existing.category,
+          ownerId: existing.ownerId,
+          parentId: existing.parentId,
+          progress: existing.progress,
+          contributionPercent: existing.contributionPercent,
+          remark: existing.remark,
+          deadLine: existing.deadLine,
+          startDate: existing.startDate,
+          remainingTask: existing.remainingTask,
+          completedTask: existing.completedTask,
+          criticalDays: existing.criticalDays,
+          isProject: existing.isProject,
+          collaborators: existing.collaborators,
+          dependentTasks: existing.dependentTasks,
+        );
+        await _taskService.updateTask(taskId, updated);
+        await getAllTask();
+        _refreshRelated();
+        return true;
+      } catch (fallbackError) {
+        Get.snackbar('Error', 'Failed to disapprove review: $fallbackError');
+        return false;
+      }
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<bool> addRemark(String senderId, String taskId, String message) async {
     isLoading.value = true;
     try {
