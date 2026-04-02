@@ -76,8 +76,6 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
   late final List<Animation<Offset>> _fieldSlides;
   late final Animation<double> _pulseScale;
 
-  final _projectId = Get.arguments as String?;
-
   @override
   void initState() {
     super.initState();

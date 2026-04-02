@@ -68,30 +68,6 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
   List<String> get _projectCategoryOptions =>
       categoryController.dropdownOptions;
 
-  String get _normalizedRole =>
-      AuthController.to.role.value.trim().toUpperCase();
-
-  String get _sessionUserId => AuthController.to.currentUserId.value.trim();
-
-  String get _sessionUsername => AuthController.to.username.value.trim();
-
-  bool get _isAdminSession => _normalizedRole == 'ADMIN';
-
-  bool _canManageProject(Task project) {
-    if (_isAdminSession) return true;
-
-    final ownerId = project.ownerId.trim();
-    if (ownerId.isEmpty) return false;
-    final normalizedOwner = ownerId.toLowerCase();
-
-    bool matches(String candidate) {
-      final value = candidate.trim();
-      if (value.isEmpty) return false;
-      return value.toLowerCase() == normalizedOwner;
-    }
-
-    return matches(_sessionUserId) || matches(_sessionUsername);
-  }
 
   List<Task> getFilteredTasks() {
     final projects = taskController.projects.toList(growable: false);
