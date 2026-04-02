@@ -55,11 +55,7 @@ class UserTaskController extends GetxController {
         );
         final all = await _taskService.getAllTask();
         tasks = all
-            .where(
-              (t) =>
-                  (t.ownerId == userId) &&
-                  (t.type == 'TASK' || t.isProject == false),
-            )
+            .where((t) => (t.ownerId == userId) && (t.type == 'TASK'))
             .toList();
       }
       userTasks.value = tasks;
@@ -70,8 +66,4 @@ class UserTaskController extends GetxController {
       userTasks.value = [];
     }
   }
-
-
-  
-
 }

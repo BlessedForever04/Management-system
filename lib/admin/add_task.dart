@@ -1342,7 +1342,7 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
       Get.snackbar(
         "Error",
         "Please fill title, description, assignee, and priority",
-        backgroundColor: Colors.redAccent,
+        backgroundColor: Colors.black,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
         margin: const EdgeInsets.all(12),
@@ -1358,7 +1358,7 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
           Get.snackbar(
             "Error",
             "Enter a valid contribution percentage",
-            backgroundColor: Colors.redAccent,
+            backgroundColor: Colors.black,
             colorText: Colors.white,
             snackPosition: SnackPosition.BOTTOM,
             margin: const EdgeInsets.all(12),
@@ -1373,7 +1373,7 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
         Get.snackbar(
           "Error",
           "Only $_remainingContribution% contribution is remaining for this project",
-          backgroundColor: Colors.redAccent,
+          backgroundColor: Colors.black,
           colorText: Colors.white,
           snackPosition: SnackPosition.BOTTOM,
           margin: const EdgeInsets.all(12),
