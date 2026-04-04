@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:managementt/components/app_colors.dart';
@@ -27,11 +26,6 @@ class _MessagePageState extends State<MessagePage> {
   String? _latestRemarkId;
   late final Future<String> _projectNameFuture;
 
-  Future<String> getProjectName() async {
-    final Task task = await _taskController.getTaskById(projectId);
-    return task.title;
-  }
-
   @override
   void initState() {
     super.initState();
@@ -39,6 +33,25 @@ class _MessagePageState extends State<MessagePage> {
     _projectNameFuture = getProjectName();
     _initialLoad();
     _startPolling();
+  }
+
+  Future<String> getProjectName() async {
+    final Task task = await _taskController.getTaskById(projectId);
+    return task.title;
+  }
+
+  /// ✅ WhatsApp style date formatter
+  String formatDateHeader(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final messageDate = DateTime(date.year, date.month, date.day);
+
+    final difference = today.difference(messageDate).inDays;
+
+    if (difference == 0) return "Today";
+    if (difference == 1) return "Yesterday";
+
+    return "${date.day}/${date.month}/${date.year}";
   }
 
   Future<void> _initialLoad() async {
@@ -56,10 +69,13 @@ class _MessagePageState extends State<MessagePage> {
   }) async {
     if (_isFetching) return;
     _isFetching = true;
+
     try {
       await _taskController.fetchRemarks(projectId);
+
       final remarks = _taskController.remarkList;
       final latestId = remarks.isNotEmpty ? remarks.last.id : null;
+
       final hasNewMessage =
           !isInitialLoad && latestId != null && latestId != _latestRemarkId;
 
@@ -101,6 +117,7 @@ class _MessagePageState extends State<MessagePage> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: AppColors.scaffoldBackground,
+        iconTheme: const IconThemeData(color: Colors.black),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -108,13 +125,17 @@ class _MessagePageState extends State<MessagePage> {
               future: _projectNameFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator(strokeWidth: 1, value: 0.0);
+                  return const SizedBox(
+                    height: 16,
+                    width: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  );
                 } else if (snapshot.hasError) {
                   return Text("Error: ${snapshot.error}");
                 } else {
                   return Text(
                     snapshot.data!,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
                     ),
@@ -122,14 +143,12 @@ class _MessagePageState extends State<MessagePage> {
                 }
               },
             ),
-            Text(
+            const Text(
               "Team Messages",
               style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
         ),
-        iconTheme: IconThemeData(color: Colors.black),
-        centerTitle: false,
       ),
 
       body: SafeArea(
@@ -141,7 +160,7 @@ class _MessagePageState extends State<MessagePage> {
                 final remarks = _taskController.remarkList;
 
                 if (remarks.isEmpty) {
-                  return Center(
+                  return const Center(
                     child: Text(
                       "No messages yet 🚀",
                       style: TextStyle(color: Colors.grey),
@@ -151,75 +170,124 @@ class _MessagePageState extends State<MessagePage> {
 
                 return ListView.builder(
                   controller: scrollController,
-                  padding: EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(12),
                   itemCount: remarks.length,
                   itemBuilder: (context, index) {
                     final remark = remarks[index];
 
+                    final date = DateTime.parse(remark.timestamp);
+
                     final isMe =
                         remark.senderId == _authController.currentUserId.value;
 
-                    return Align(
-                      alignment: isMe
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      child: Column(
-                        crossAxisAlignment: isMe
-                            ? CrossAxisAlignment.end
-                            : CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            margin: EdgeInsets.symmetric(vertical: 6),
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 10,
-                            ),
-                            constraints: BoxConstraints(maxWidth: 280),
-                            decoration: BoxDecoration(
-                              color: isMe ? Colors.blueAccent : Colors.white,
-                              borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(16),
-                                topRight: Radius.circular(16),
-                                bottomLeft: Radius.circular(isMe ? 16 : 0),
-                                bottomRight: Radius.circular(isMe ? 0 : 16),
+                    bool showDateHeader = false;
+
+                    if (index == 0) {
+                      showDateHeader = true;
+                    } else {
+                      final prevDate = DateTime.parse(
+                        remarks[index - 1].timestamp,
+                      );
+
+                      showDateHeader =
+                          date.day != prevDate.day ||
+                          date.month != prevDate.month ||
+                          date.year != prevDate.year;
+                    }
+
+                    return Column(
+                      children: [
+                        /// 📅 DATE HEADER
+                        if (showDateHeader)
+                          Center(
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(vertical: 10),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
                               ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 4,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Text(
-                              remark.message,
-                              style: TextStyle(
-                                color: isMe ? Colors.white : Colors.black87,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade300,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                formatDateHeader(date),
+                                style: const TextStyle(fontSize: 12),
                               ),
                             ),
                           ),
 
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            child: Text(
-                              "${remark.senderName}",
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey,
+                        /// 💬 MESSAGE BUBBLE
+                        Align(
+                          alignment: isMe
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
+                          child: Column(
+                            crossAxisAlignment: isMe
+                                ? CrossAxisAlignment.end
+                                : CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                margin: const EdgeInsets.symmetric(vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 10,
+                                ),
+                                constraints: const BoxConstraints(
+                                  maxWidth: 280,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isMe
+                                      ? Colors.blueAccent
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: const Radius.circular(16),
+                                    topRight: const Radius.circular(16),
+                                    bottomLeft: Radius.circular(isMe ? 16 : 0),
+                                    bottomRight: Radius.circular(isMe ? 0 : 16),
+                                  ),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Colors.black12,
+                                      blurRadius: 4,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Text(
+                                  remark.message,
+                                  style: TextStyle(
+                                    color: isMe ? Colors.white : Colors.black87,
+                                  ),
+                                ),
                               ),
-                            ),
+
+                              /// 👤 NAME
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
+                                child: Text(
+                                  remark.senderName ?? "Unknown",
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     );
                   },
                 );
               }),
             ),
 
-            /// ✍️ INPUT BAR (LIKE WHATSAPP)
+            /// ✍️ INPUT BAR
             Container(
-              margin: EdgeInsets.all(10),
+              margin: const EdgeInsets.all(10),
               child: Row(
                 children: [
                   Expanded(
@@ -229,14 +297,12 @@ class _MessagePageState extends State<MessagePage> {
                       hint: "Type a message...",
                     ),
                   ),
-
-                  SizedBox(width: 8),
-
+                  const SizedBox(width: 8),
                   CircleAvatar(
                     radius: 24,
                     backgroundColor: Colors.blueAccent,
                     child: IconButton(
-                      icon: Icon(Icons.send, color: Colors.white),
+                      icon: const Icon(Icons.send, color: Colors.white),
                       onPressed: () async {
                         if (messageController.text.trim().isEmpty) return;
 
@@ -250,6 +316,7 @@ class _MessagePageState extends State<MessagePage> {
                         _latestRemarkId = remarks.isNotEmpty
                             ? remarks.last.id
                             : null;
+
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           if (!mounted || !scrollController.hasClients) return;
                           scrollController.animateTo(
@@ -258,6 +325,7 @@ class _MessagePageState extends State<MessagePage> {
                             curve: Curves.easeOut,
                           );
                         });
+
                         messageController.clear();
                       },
                     ),
