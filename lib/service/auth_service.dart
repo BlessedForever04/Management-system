@@ -37,7 +37,10 @@ class AuthService {
       }),
     );
     if (response.statusCode != 200) {
-      throw Exception('Registration failed: ${response.body}');
+      final message = response.body.isNotEmpty
+          ? response.body.replaceAll('"', '')
+          : 'Registration failed';
+      throw Exception(message);
     }
   }
 
