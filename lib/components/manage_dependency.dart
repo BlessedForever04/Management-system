@@ -16,6 +16,7 @@ class ManageDependency extends StatelessWidget {
   Widget build(BuildContext context) {
     _collaborationController.getAllTasksByCollaboration2(projectId, taskId);
     _collaborationController.getDependencies(taskId);
+
     return Scaffold(
       body: SafeArea(
         child: Container(
@@ -34,7 +35,7 @@ class ManageDependency extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      "Add Dependency",
+                      "Manage Dependency",
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
@@ -48,7 +49,54 @@ class ManageDependency extends StatelessWidget {
                 ),
               ),
 
-              /// 🔹 Content
+              /// 🔹 Dependencies (Already Added)
+              Obx(() {
+                final dependencies = _collaborationController.dependencies();
+
+                if (dependencies.isEmpty) return const SizedBox();
+
+                return Container(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Added Dependencies",
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 10),
+
+                      ...dependencies.map((depTask) {
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE0F2FE),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.link, size: 18),
+                              const SizedBox(width: 10),
+                              Expanded(child: Text(depTask.title)),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ],
+                  ),
+                );
+              }),
+
+              /// 🔹 Task List (Exclude Dependencies)
               Expanded(
                 child: Obx(() {
                   if (_collaborationController.loadingTasks.value) {
@@ -56,6 +104,11 @@ class ManageDependency extends StatelessWidget {
                   }
 
                   final data = _collaborationController.tasksOfCollaboration;
+
+                  final dependencies = _collaborationController.dependencies();
+
+                  /// 🔥 Create Set of dependency IDs for filtering
+                  final dependencyIds = dependencies.map((e) => e.id).toSet();
 
                   if (data.isEmpty) {
                     return const Center(
@@ -70,7 +123,16 @@ class ManageDependency extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     children: data.entries.map((entry) {
                       final projectId = entry.key;
-                      final tasks = entry.value;
+
+                      /// 🔥 FILTER TASKS HERE
+                      final tasks = entry.value
+                          .where(
+                            (t) =>
+                                !dependencyIds.contains(t.id) && t.id != taskId,
+                          ) // also remove self
+                          .toList();
+
+                      if (tasks.isEmpty) return const SizedBox();
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 14),
@@ -78,31 +140,17 @@ class ManageDependency extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(18),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.04),
-                              blurRadius: 10,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            /// 🔹 Project Header
+                            /// Project Header
                             Row(
                               children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: const Icon(
-                                    Icons.folder,
-                                    color: Colors.blue,
-                                    size: 18,
-                                  ),
+                                const Icon(
+                                  Icons.folder,
+                                  size: 18,
+                                  color: Colors.blue,
                                 ),
                                 const SizedBox(width: 10),
                                 Expanded(
@@ -113,23 +161,15 @@ class ManageDependency extends StatelessWidget {
                                     ),
                                   ),
                                 ),
-                                Text(
-                                  "${tasks.length} tasks",
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 12,
-                                  ),
-                                ),
                               ],
                             ),
 
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 10),
 
-                            /// 🔹 Tasks
+                            /// Tasks
                             Column(
                               children: tasks.map((depTask) {
                                 return InkWell(
-                                  borderRadius: BorderRadius.circular(12),
                                   onTap: () async {
                                     _collaborationController.addDependency(
                                       taskId,
@@ -143,9 +183,6 @@ class ManageDependency extends StatelessWidget {
                                       "Dependency added",
                                       backgroundColor: Colors.black,
                                       colorText: Colors.white,
-                                      snackPosition: SnackPosition.BOTTOM,
-                                      borderRadius: 12,
-                                      margin: const EdgeInsets.all(12),
                                     );
                                   },
                                   child: Container(
@@ -163,31 +200,9 @@ class ManageDependency extends StatelessWidget {
                                           color: Colors.green,
                                         ),
                                         const SizedBox(width: 10),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                depTask.title,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 2),
-                                              Text(
-                                                depTask.description,
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: Colors.grey[600],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Icon(
+                                        Expanded(child: Text(depTask.title)),
+                                        const Icon(
                                           Icons.add_circle_outline,
-                                          size: 18,
                                           color: Colors.blue,
                                         ),
                                       ],
@@ -203,20 +218,6 @@ class ManageDependency extends StatelessWidget {
                   );
                 }),
               ),
-              Obx(() {
-                return ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: _collaborationController.dependencies().length,
-                  itemBuilder: (context, index) {
-                    final depTask = _collaborationController
-                        .dependencies()[index];
-                    return ListTile(
-                      title: Text(depTask.title),
-                      subtitle: Text(depTask.description),
-                    );
-                  },
-                );
-              }),
             ],
           ),
         ),
