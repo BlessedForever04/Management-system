@@ -11,6 +11,7 @@ import 'package:managementt/controller/collaboration_controller.dart';
 import 'package:managementt/controller/member_controller.dart';
 import 'package:managementt/controller/task_controller.dart';
 import 'package:managementt/members/collaboration_page.dart';
+import 'package:managementt/members/user_task_detail_page.dart';
 import 'package:managementt/model/task.dart';
 
 class ProjectDetailPage extends StatefulWidget {
@@ -288,6 +289,11 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   void initState() {
     super.initState();
     _project = widget.project;
+
+    final projectId = _project.id;
+    if (projectId != null && projectId.isNotEmpty) {
+      collaborationController.getAllTasksByCollaboration(projectId);
+    }
     if (_memberController.members.isEmpty &&
         !_memberController.isLoading.value) {
       _memberController.getMembers();
@@ -526,10 +532,10 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   @override
   Widget build(BuildContext context) {
     final topPad = MediaQuery.of(context).padding.top;
-    final projectId = _project.id;
-    if (projectId != null && projectId.isNotEmpty) {
-      collaborationController.getAllTasksByCollaboration(projectId);
-    }
+    // final projectId = _project.id;
+    // if (projectId != null && projectId.isNotEmpty) {
+    //   collaborationController.getAllTasksByCollaboration(projectId);
+    // }
 
     return WillPopScope(
       onWillPop: () async {
@@ -1101,35 +1107,45 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                             _canApproveTasks &&
                             taskId != null &&
                             taskId.isNotEmpty;
-                        return _TaskCard(
-                          task: t,
-                          deadlineText: _deadlineText(t.deadLine),
-                          ownerName: _memberNameById(t.ownerId),
-                          onModify: _canManageProject
-                              ? () => _openTaskEditor(t)
-                              : null,
-                          onUndone:
-                              _canManageProject &&
-                                  AppColors.isCompletedStatus(t.status)
-                              ? () => _undoCompletedTask(t)
-                              : null,
-                          onDelete: _canManageProject
-                              ? () => _deleteTask(t)
-                              : null,
-                          onApprove: showApprove ? () => _approveTask(t) : null,
-                          onDisapprove: showApprove
-                              ? () => _disapproveTask(t)
-                              : null,
-                          onOpenChat: showTaskChat
-                              ? () => Get.to(
-                                  () => const MessagePage(),
-                                  arguments: taskId,
-                                )
-                              : null,
-                          onAddDependency: () => Get.to(
-                            () => ManageDependency(
-                              taskId: t.id ?? '',
-                              projectId: project.id ?? '',
+                        return InkWell(
+                          onTap: () {
+                            if (t.isProject == true) {
+                              print("project");
+                              Get.to(() => UserTaskDetailPage(task: t));
+                            }
+                          },
+                          child: _TaskCard(
+                            task: t,
+                            deadlineText: _deadlineText(t.deadLine),
+                            ownerName: _memberNameById(t.ownerId),
+                            onModify: _canManageProject
+                                ? () => _openTaskEditor(t)
+                                : null,
+                            onUndone:
+                                _canManageProject &&
+                                    AppColors.isCompletedStatus(t.status)
+                                ? () => _undoCompletedTask(t)
+                                : null,
+                            onDelete: _canManageProject
+                                ? () => _deleteTask(t)
+                                : null,
+                            onApprove: showApprove
+                                ? () => _approveTask(t)
+                                : null,
+                            onDisapprove: showApprove
+                                ? () => _disapproveTask(t)
+                                : null,
+                            onOpenChat: showTaskChat
+                                ? () => Get.to(
+                                    () => const MessagePage(),
+                                    arguments: taskId,
+                                  )
+                                : null,
+                            onAddDependency: () => Get.to(
+                              () => ManageDependency(
+                                taskId: t.id ?? '',
+                                projectId: project.id ?? '',
+                              ),
                             ),
                           ),
                         );
