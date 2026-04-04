@@ -78,6 +78,7 @@ class Task {
 
       if (progressValue >= 100) return 'DONE';
       if (isOverdue) return 'OVERDUE';
+      if (progressValue > 0 || completedTaskValue > 0) return 'IN_PROGRESS';
       if (completedTaskValue == 0) return 'NOT_STARTED';
       return 'IN_PROGRESS';
     })();

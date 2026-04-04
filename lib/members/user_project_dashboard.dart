@@ -150,8 +150,29 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
     }
   }
 
-  String _statusLabel(String? status) {
-    final s = (status ?? '').trim().toUpperCase();
+  bool _isDoneProject(Task project) {
+    final status = (project.status ?? '').toUpperCase();
+    return status == 'DONE' || status == 'COMPLETED' || project.progress >= 100;
+  }
+
+  bool _isInProgressProject(Task project) {
+    final status = (project.status ?? '').toUpperCase();
+    if (_isDoneProject(project) || status == 'OVERDUE') {
+      return false;
+    }
+    return project.progress > 0 ||
+        project.completedTask > 0 ||
+        status == 'IN_PROGRESS';
+  }
+
+  String _statusLabel(Task project) {
+    if (_isDoneProject(project)) {
+      return 'Done';
+    }
+    if (_isInProgressProject(project)) {
+      return 'In progress';
+    }
+    final s = (project.status ?? '').trim().toUpperCase();
     switch (s) {
       case 'IN_PROGRESS':
         return 'In progress';
@@ -201,11 +222,13 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
         final status = (t.status ?? '').toUpperCase();
         switch (selectedProgress.value) {
           case 'IN_PROGRESS':
-            return status == 'IN_PROGRESS';
+            return _isInProgressProject(t);
           case 'DONE':
-            return status == 'DONE' || status == 'COMPLETED';
+            return _isDoneProject(t);
           case 'NOT_STARTED':
-            return status == 'NOT_STARTED' || status == 'TODO';
+            return !_isDoneProject(t) &&
+                !_isInProgressProject(t) &&
+                (status == 'NOT_STARTED' || status == 'TODO');
           case 'OVERDUE':
             return status == 'OVERDUE';
           case 'ALL':
@@ -489,7 +512,7 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
                             _StatChip(
                               label: 'Done',
                               count: taskController.userProjects
-                                  .where((t) => t.status == 'DONE')
+                                  .where(_isDoneProject)
                                   .length,
                               color: const Color(0xFFA78BFA),
                             ),
@@ -598,7 +621,7 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
                               ? '${project.completedTask}/$totalSub tasks'
                               : null,
                           priority: _priorityLabel(project.priority),
-                          state: _statusLabel(project.status),
+                          state: _statusLabel(project),
                           progress: project.progress / 100.0,
                           timeProgress: DateTimeHelper.remainingTimeRatio(
                             project.startDate,

@@ -62,7 +62,7 @@ class UserDashboardController extends GetxController {
       }
 
       try {
-        final allProjects = await _taskService.getTasksByType('PROJECT');
+        final allProjects = await _taskService.getAllProjects();
         loadedProjects = currentUserId != null
             ? allProjects.where((p) => p.ownerId == currentUserId).toList()
             : [];
@@ -106,34 +106,58 @@ class UserDashboardController extends GetxController {
 
   int get projectCount => projects.length;
 
-  int get activeProjectCount =>
-      projects.where((p) => p.status == 'IN_PROGRESS').length;
+  bool _isDoneProject(Task project) {
+    final status = (project.status ?? '').toUpperCase();
+    return status == 'DONE' || status == 'COMPLETED' || project.progress >= 100;
+  }
+
+  bool _isOverdueProject(Task project) {
+    return (project.status ?? '').toUpperCase() == 'OVERDUE';
+  }
+
+  bool _isNotStartedProject(Task project) {
+    if (_isDoneProject(project) || _isOverdueProject(project)) return false;
+    final status = (project.status ?? '').toUpperCase();
+    final hasStarted =
+        project.progress > 0 ||
+        project.completedTask > 0 ||
+        status == 'IN_PROGRESS';
+    if (hasStarted) return false;
+    return status == 'NOT_STARTED' || status == 'TODO' || project.progress <= 0;
+  }
+
+  bool _isInProgressProject(Task project) {
+    if (_isDoneProject(project) ||
+        _isOverdueProject(project) ||
+        _isNotStartedProject(project)) {
+      return false;
+    }
+    return true;
+  }
+
+  int get activeProjectCount => projects.where(_isInProgressProject).length;
 
   int get totalTaskCount => tasks.length;
 
-  int get overdueCount => projects.where((p) => p.status == 'OVERDUE').length;
+  int get overdueCount => projects.where(_isOverdueProject).length;
 
   // ── Donut chart data ──
 
   List<StatusData> get statusData {
     final all = projects;
-    final done = all
-        .where((p) => p.status == 'DONE' || p.status == 'COMPLETED')
-        .length;
-    final inProgress = all.where((p) => p.status == 'IN_PROGRESS').length;
-    final notStarted = all
-        .where((p) => p.status == 'NOT_STARTED' || p.status == 'TODO')
-        .length;
-    final overdue = all.where((p) => p.status == 'OVERDUE').length;
+    final done = all.where(_isDoneProject).length;
+    final inProgress = all.where(_isInProgressProject).length;
+    final notStarted = all.where(_isNotStartedProject).length;
+    final overdue = all.where(_isOverdueProject).length;
     return [
       StatusData(label: 'Done', count: done, color: AppColors.success),
       StatusData(
-        label: 'In Progress',
+        label: 'In progress',
         count: inProgress,
         color: AppColors.info,
       ),
       StatusData(
-        label: 'Not Started',
+        label: 'Not started',
         count: notStarted,
         color: const Color(0xFFD1D5DB),
       ),
@@ -143,9 +167,7 @@ class UserDashboardController extends GetxController {
 
   String get completionPercent {
     if (projects.isEmpty) return '0';
-    final done = projects
-        .where((p) => p.status == 'DONE' || p.status == 'COMPLETED')
-        .length;
+    final done = projects.where(_isDoneProject).length;
     return ((done / projects.length) * 100).toStringAsFixed(0);
   }
 
@@ -173,7 +195,7 @@ class UserDashboardController extends GetxController {
     final alerts = <AlertItem>[];
 
     for (final project in projects) {
-      if (project.status == 'OVERDUE') {
+      if (_isOverdueProject(project)) {
         alerts.add(
           AlertItem(
             title: '${project.title} is overdue',
