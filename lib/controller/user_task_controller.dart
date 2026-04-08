@@ -1,5 +1,8 @@
+import 'package:get/get_instance/src/extension_instance.dart';
 import 'package:get/state_manager.dart';
 import 'package:managementt/components/app_snackbar.dart';
+import 'package:managementt/controller/dashboard_controller.dart';
+import 'package:managementt/controller/task_controller.dart';
 import 'package:managementt/model/task.dart';
 import 'package:managementt/service/task_service.dart';
 
@@ -8,7 +11,7 @@ class UserTaskController extends GetxController {
   var userTasks = <Task>[].obs;
   var userProjects = <Task>[].obs;
 
-  Future<void> removeProject(String id) async {
+  Future<void> removeProject(String id, {required String userId}) async {
     final index = userProjects.indexWhere((project) => project.id == id);
     if (index < 0) {
       return;
@@ -20,6 +23,15 @@ class UserTaskController extends GetxController {
 
     try {
       await _taskService.deleteTask(id, false);
+      await fetchUserProjects(userId);
+      await fetchUserTasks(userId);
+
+      if (Get.isRegistered<TaskController>()) {
+        await Get.find<TaskController>().getAllTask();
+      }
+      if (Get.isRegistered<DashboardController>()) {
+        await Get.find<DashboardController>().loadDashboard();
+      }
     } catch (e) {
       final safeIndex = index.clamp(0, userProjects.length);
       userProjects.insert(safeIndex, removed);

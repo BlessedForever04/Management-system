@@ -42,6 +42,9 @@ class _UserTaskDashboardState extends State<UserTaskDashboard> {
   final TaskController allTaskController = Get.find<TaskController>();
   final CategoryController categoryController = Get.find<CategoryController>();
 
+  String? get _currentUserId =>
+      Get.find<ProfileController>().member.value?.id.toString();
+
   String _parentProjectName(String? parentId) {
     if (parentId == null || parentId.trim().isEmpty) return 'No parent project';
 
@@ -103,7 +106,15 @@ class _UserTaskDashboardState extends State<UserTaskDashboard> {
         child: RefreshIndicator(
           onRefresh: () async {
             await TaskService().checkOverdue();
+            final userId = _currentUserId;
+            if (userId != null) {
+              await allTaskController.getAllTask();
+              await taskController.fetchUserTasks(userId);
+            }
             await dc.loadDashboard();
+            if (mounted) {
+              setState(() {});
+            }
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),

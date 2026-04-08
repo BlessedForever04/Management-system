@@ -59,6 +59,9 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
     'Low',
   ];
 
+  String? get _currentUserId =>
+      Get.find<ProfileController>().member.value?.id.toString();
+
   @override
   void initState() {
     super.initState();
@@ -445,7 +448,14 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
         child: RefreshIndicator(
           onRefresh: () async {
             await TaskService().checkOverdue();
+            final userId = _currentUserId;
+            if (userId != null) {
+              await userTaskController.fetchUserProjects(userId);
+            }
             await dc.loadDashboard();
+            if (mounted) {
+              setState(() {});
+            }
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -626,7 +636,13 @@ class _UserProjectDashboardState extends State<UserProjectDashboard> {
                           },
                           onDismissed: (_) {
                             if (project.id != null) {
-                              userTaskController.removeProject(project.id!);
+                              final userId = _currentUserId;
+                              if (userId != null) {
+                                userTaskController.removeProject(
+                                  project.id!,
+                                  userId: userId,
+                                );
+                              }
                             }
                           },
                           background: Container(

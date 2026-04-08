@@ -302,13 +302,38 @@ class UserDashboardController extends GetxController {
     return '${(diff.inDays / 365).floor()} years ago';
   }
 
+  String formatActivityTime(DateTime? time) {
+    if (time == null) return '';
+
+    final localTime = time.toLocal();
+    final hour = localTime.hour % 12 == 0 ? 12 : localTime.hour % 12;
+    final minute = localTime.minute.toString().padLeft(2, '0');
+    final amPm = localTime.hour >= 12 ? 'PM' : 'AM';
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+
+    return '${localTime.day} ${months[localTime.month - 1]} ${localTime.year}, $hour:$minute $amPm';
+  }
+
   List<ActivityItem> get activityItems {
     return activities.take(5).map((a) {
       return ActivityItem(
         initials: getInitials(a.userName),
         message: '${a.userName} ${a.verb} "${a.projectName}"',
         project: a.projectName,
-        when: formatRelativeTime(a.time),
+        when: formatActivityTime(a.time),
       );
     }).toList();
   }
