@@ -6,6 +6,7 @@ import 'package:managementt/components/app_colors.dart';
 import 'package:managementt/controller/category_controller.dart';
 import 'package:managementt/controller/collaboration_controller.dart';
 import 'package:managementt/controller/member_controller.dart';
+import 'package:managementt/controller/profile_controller.dart';
 import 'package:managementt/controller/task_controller.dart';
 import 'package:managementt/model/task.dart';
 
@@ -1423,6 +1424,10 @@ class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
           ? widget.taskToEdit?.category
           : selectedCategory.value,
       ownerId: selectedMemberId.value,
+      // Only set creatorId for new projects (not edits) to track who created the project
+      creatorId: _isEditMode
+          ? null
+          : Get.find<ProfileController>().member.value?.id,
       parentId: widget.taskToEdit?.parentId ?? widget.parentId,
       contributionPercent: _isProjectTask ? contributionValue : 0,
       deadLine: selectedDeadline.value,

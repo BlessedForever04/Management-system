@@ -7,6 +7,8 @@ class Task {
   String? status; // NOT_STARTED / TODO / DONE / OVERDUE
   String? category;
   String ownerId;
+  String?
+  creatorId; // Tracks who created this task/project (for activity logging)
   String? parentId;
   int progress; // 0-100
   int contributionPercent;
@@ -29,6 +31,7 @@ class Task {
     this.status,
     this.category,
     required this.ownerId,
+    this.creatorId,
     this.parentId,
     this.progress = 0,
     this.contributionPercent = 0,
@@ -92,6 +95,7 @@ class Task {
       status: normalizedStatus,
       category: json['category'] ?? json['projectCategory'],
       ownerId: json['ownerId'] ?? '',
+      creatorId: json['creatorId'],
       parentId: json['parentId'] ?? null,
       progress: progressValue,
       contributionPercent: rawContribution is num
@@ -134,6 +138,7 @@ class Task {
       "status": status,
       "category": category,
       "ownerId": ownerId,
+      "creatorId": creatorId,
       "parentId": parentId,
       "progress": progress,
       "contributionPercent": contributionPercent,
