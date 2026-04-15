@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:managementt/admin/project_detail_page.dart';
 import 'package:managementt/components/app_colors.dart';
 import 'package:managementt/components/notification_tile.dart';
 import 'package:managementt/controller/auth_controller.dart';
+import 'package:managementt/controller/task_controller.dart';
 import 'package:managementt/model/app_notification.dart';
+import 'package:managementt/model/task.dart';
 import 'package:managementt/service/notification_service.dart';
 
 class NotificationPage extends StatefulWidget {
@@ -14,20 +18,28 @@ class NotificationPage extends StatefulWidget {
 
 class _NotificationPageState extends State<NotificationPage> {
   final NotificationService _notificationService = NotificationService();
+  final Map<String, String> _projectNameCache = <String, String>{};
+  late final TaskController? _taskController;
   late Future<List<AppNotification>> _notificationsFuture;
 
   @override
   void initState() {
     super.initState();
+    _taskController = Get.isRegistered<TaskController>()
+        ? Get.find<TaskController>()
+        : null;
     _notificationsFuture = _loadNotifications();
   }
 
-  Future<List<AppNotification>> _loadNotifications() {
+  Future<List<AppNotification>> _loadNotifications() async {
     final memberId = AuthController.to.currentUserId.value.trim();
     if (memberId.isEmpty) {
-      return Future.value(const <AppNotification>[]);
+      return const <AppNotification>[];
     }
-    return _notificationService.getNotifications(memberId);
+
+    final notifications = await _notificationService.getNotifications(memberId);
+    await _cacheProjectNames(notifications);
+    return notifications;
   }
 
   Future<void> _refresh() async {
@@ -40,45 +52,39 @@ class _NotificationPageState extends State<NotificationPage> {
 
   NotificationTileData _toTileData(AppNotification notification) {
     final type = notification.eventType.trim().toUpperCase();
+    final helperId = (notification.helperId ?? '').trim();
 
     IconData icon;
     Color iconBackground;
-    String title;
 
     switch (type) {
       case 'NEW_TASK_CREATION':
         icon = Icons.assignment_turned_in_outlined;
         iconBackground = const Color(0xFF2563EB);
-        title = 'New Task Created';
         break;
       case 'REMARK_SECTION':
         icon = Icons.chat_bubble_outline;
         iconBackground = const Color(0xFF8B5CF6);
-        title = 'New Remark';
         break;
       case 'REVIEW_REQUEST':
         icon = Icons.rate_review_outlined;
         iconBackground = const Color(0xFF0EA5A4);
-        title = 'Review Request';
         break;
       case 'OVERDUE_WARNING':
         icon = Icons.warning_amber_rounded;
         iconBackground = const Color(0xFFEF4444);
-        title = 'Overdue Warning';
         break;
       case 'PROJECT_READY_TO_WORK':
         icon = Icons.play_circle_outline;
         iconBackground = const Color(0xFF10B981);
-        title = 'Project Ready';
         break;
       default:
         icon = Icons.notifications_none_rounded;
         iconBackground = const Color(0xFFFF7A1A);
-        title = 'Notification';
     }
 
     return NotificationTileData(
-      title: title,
+      title: _projectNameCache[helperId] ?? 'Unknown Project',
       message: notification.message.isNotEmpty
           ? notification.message
           : 'You have a new update.',
@@ -87,6 +93,75 @@ class _NotificationPageState extends State<NotificationPage> {
       iconBackground: iconBackground,
       isUnread: true,
     );
+  }
+
+  Future<void> _cacheProjectNames(List<AppNotification> notifications) async {
+    final helperIds = notifications
+        .map((n) => (n.helperId ?? '').trim())
+        .where((id) => id.isNotEmpty)
+        .toSet();
+
+    for (final helperId in helperIds) {
+      if (_projectNameCache.containsKey(helperId)) continue;
+      _projectNameCache[helperId] = await _resolveProjectName(helperId);
+    }
+  }
+
+  Future<String> _resolveProjectName(String helperId) async {
+    try {
+      final controller = _taskController;
+      if (controller != null) {
+        final matches = controller.projects.where((project) => project.id == helperId);
+        if (matches.isNotEmpty) {
+          final existing = matches.first;
+          if (existing.title.trim().isNotEmpty) {
+            return existing.title;
+          }
+        }
+
+        final task = await controller.getTaskById(helperId);
+        if (task.title.trim().isNotEmpty) {
+          return task.title;
+        }
+      }
+    } catch (_) {
+      // Fall back to default title below.
+    }
+    return 'Unknown Project';
+  }
+
+  Future<void> _openProjectDetails(AppNotification notification) async {
+    final projectId = (notification.helperId ?? '').trim();
+    if (projectId.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Project id is missing for this notification.')),
+      );
+      return;
+    }
+
+    final controller = _taskController;
+    if (controller == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Task controller is not available.')),
+      );
+      return;
+    }
+
+    try {
+      final matches = controller.projects.where((p) => p.id == projectId);
+      final Task resolved = matches.isNotEmpty
+          ? matches.first
+          : await controller.getTaskById(projectId);
+
+      await Get.to(() => ProjectDetailPage(project: resolved));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to open project details.')),
+      );
+    }
   }
 
   String _formatTimeLabel(DateTime? value) {
@@ -159,6 +234,16 @@ class _NotificationPageState extends State<NotificationPage> {
                               color: Color(0xFF111827),
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            (snapshot.error?.toString() ?? 'Unknown error')
+                                .replaceFirst('Exception: ', ''),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Color(0xFF6B7280),
+                              fontSize: 12,
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -242,7 +327,7 @@ class _NotificationPageState extends State<NotificationPage> {
                                       ),
                                       const SizedBox(height: 16),
                                       const Text(
-                                        'No notifications',
+                                        'No notifications yet',
                                         style: TextStyle(
                                           color: Color(0xFF111827),
                                           fontWeight: FontWeight.w600,
@@ -268,6 +353,7 @@ class _NotificationPageState extends State<NotificationPage> {
                               itemBuilder: (context, index) {
                                 return NotificationTile(
                                   notification: tiles[index],
+                                  onTap: () => _openProjectDetails(notifications[index]),
                                 );
                               },
                             ),

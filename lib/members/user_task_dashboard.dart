@@ -442,7 +442,7 @@ class _UserTaskDashboardState extends State<UserTaskDashboard> {
 
                                         // 🔹 DESCRIPTION
                                         Text(
-                                          task.description ?? "",
+                                          task.description,
                                           maxLines: 2,
                                           overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
