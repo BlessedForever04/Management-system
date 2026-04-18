@@ -9,10 +9,10 @@ import 'package:managementt/components/donut_chart.dart';
 import 'package:managementt/components/project_card.dart';
 import 'package:managementt/components/section_header.dart';
 import 'package:managementt/components/stat_card.dart';
+import 'package:managementt/components/notification_bell_button.dart';
 import 'package:managementt/controller/auth_controller.dart';
 import 'package:managementt/controller/user_nav_controller.dart';
 import 'package:managementt/controller/user_dashboard_controller.dart';
-import 'package:managementt/components/notification_page.dart';
 import 'package:managementt/members/member_profile.dart';
 import 'package:managementt/members/user_project_dashboard.dart';
 import 'package:managementt/service/task_service.dart';
@@ -104,15 +104,8 @@ class UserDashboard extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            IconButton(
-                              onPressed: () =>
-                                  Get.to(() => const NotificationPage()),
-                              icon: const Icon(
-                                Icons.notifications_none_rounded,
-                                color: Colors.white,
-                                size: 26,
-                              ),
-                              splashRadius: 22,
+                            const NotificationBellButton(
+                              iconColor: Colors.white,
                               tooltip: 'Notifications',
                             ),
                             GestureDetector(

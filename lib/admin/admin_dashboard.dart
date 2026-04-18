@@ -7,11 +7,11 @@ import 'package:managementt/components/dashboard_tiles.dart';
 import 'package:managementt/components/donut_chart.dart';
 import 'package:managementt/components/section_header.dart';
 import 'package:managementt/components/stat_card.dart';
+import 'package:managementt/components/notification_bell_button.dart';
 import 'package:managementt/controller/auth_controller.dart';
 import 'package:managementt/controller/dashboard_controller.dart';
 import 'package:managementt/service/task_service.dart';
 import 'package:managementt/admin/admin_profile.dart';
-import 'package:managementt/components/notification_page.dart';
 
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});
@@ -101,15 +101,8 @@ class AdminDashboard extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            IconButton(
-                              onPressed: () =>
-                                  Get.to(() => const NotificationPage()),
-                              icon: const Icon(
-                                Icons.notifications_none_rounded,
-                                color: Colors.white,
-                                size: 26,
-                              ),
-                              splashRadius: 22,
+                            const NotificationBellButton(
+                              iconColor: Colors.white,
                               tooltip: 'Notifications',
                             ),
                             GestureDetector(

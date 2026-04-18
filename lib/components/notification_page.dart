@@ -19,6 +19,7 @@ class NotificationPage extends StatefulWidget {
 class _NotificationPageState extends State<NotificationPage> {
   final NotificationService _notificationService = NotificationService();
   final Map<String, String> _projectNameCache = <String, String>{};
+  final Set<String> _deletingNotificationIds = <String>{};
   late final TaskController? _taskController;
   late Future<List<AppNotification>> _notificationsFuture;
 
@@ -38,8 +39,29 @@ class _NotificationPageState extends State<NotificationPage> {
     }
 
     final notifications = await _notificationService.getNotifications(memberId);
-    await _cacheProjectNames(notifications);
-    return notifications;
+    final visibleNotifications = notifications.where((notification) {
+      final userId = (notification.userId ?? '').trim();
+      final belongsToCurrentUser = userId.isEmpty || userId == memberId;
+      return belongsToCurrentUser && !notification.isDeleted;
+    }).toList();
+
+    await _cacheProjectNames(visibleNotifications);
+
+    final unreadIds = visibleNotifications
+        .where((notification) => !notification.isRead)
+        .map((notification) => (notification.id ?? '').trim())
+        .where((id) => id.isNotEmpty)
+        .toList(growable: false);
+
+    if (unreadIds.isNotEmpty) {
+      try {
+        await _notificationService.markNotificationsAsRead(unreadIds);
+      } catch (_) {
+        // Preserve loaded data if mark-as-read fails.
+      }
+    }
+
+    return visibleNotifications;
   }
 
   Future<void> _refresh() async {
@@ -48,6 +70,53 @@ class _NotificationPageState extends State<NotificationPage> {
       _notificationsFuture = next;
     });
     await next;
+  }
+
+  Future<void> _deleteNotification(AppNotification notification) async {
+    final notificationId = (notification.id ?? '').trim();
+
+    if (notificationId.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Notification id is missing.')),
+      );
+      return;
+    }
+
+    if (_deletingNotificationIds.contains(notificationId)) {
+      return;
+    }
+
+    setState(() {
+      _deletingNotificationIds.add(notificationId);
+    });
+
+    try {
+      await _notificationService.deleteNotification(notificationId);
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Notification deleted.')));
+      await _refresh();
+    } catch (e) {
+      if (!mounted) return;
+
+      final message = e.toString().replaceFirst('Exception: ', '').trim();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            message.isNotEmpty ? message : 'Failed to delete notification.',
+          ),
+        ),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _deletingNotificationIds.remove(notificationId);
+      });
+    }
   }
 
   NotificationTileData _toTileData(AppNotification notification) {
@@ -91,7 +160,7 @@ class _NotificationPageState extends State<NotificationPage> {
       timeLabel: _formatTimeLabel(notification.time),
       icon: icon,
       iconBackground: iconBackground,
-      isUnread: true,
+      isUnread: !notification.isRead,
     );
   }
 
@@ -111,7 +180,9 @@ class _NotificationPageState extends State<NotificationPage> {
     try {
       final controller = _taskController;
       if (controller != null) {
-        final matches = controller.projects.where((project) => project.id == helperId);
+        final matches = controller.projects.where(
+          (project) => project.id == helperId,
+        );
         if (matches.isNotEmpty) {
           final existing = matches.first;
           if (existing.title.trim().isNotEmpty) {
@@ -135,7 +206,9 @@ class _NotificationPageState extends State<NotificationPage> {
     if (projectId.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Project id is missing for this notification.')),
+        const SnackBar(
+          content: Text('Project id is missing for this notification.'),
+        ),
       );
       return;
     }
@@ -283,7 +356,10 @@ class _NotificationPageState extends State<NotificationPage> {
                       ),
                       const Spacer(),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.info,
                           borderRadius: BorderRadius.circular(6),
@@ -316,8 +392,12 @@ class _NotificationPageState extends State<NotificationPage> {
                                         width: 56,
                                         height: 56,
                                         decoration: BoxDecoration(
-                                          color: AppColors.info.withValues(alpha: 0.1),
-                                          borderRadius: BorderRadius.circular(12),
+                                          color: AppColors.info.withValues(
+                                            alpha: 0.1,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                         child: Icon(
                                           Icons.inbox_outlined,
@@ -351,9 +431,21 @@ class _NotificationPageState extends State<NotificationPage> {
                               physics: const AlwaysScrollableScrollPhysics(),
                               itemCount: tiles.length,
                               itemBuilder: (context, index) {
+                                final notification = notifications[index];
+                                final notificationId = (notification.id ?? '')
+                                    .trim();
+
                                 return NotificationTile(
                                   notification: tiles[index],
-                                  onTap: () => _openProjectDetails(notifications[index]),
+                                  onTap: () =>
+                                      _openProjectDetails(notification),
+                                  onDelete: () =>
+                                      _deleteNotification(notification),
+                                  isDeleting:
+                                      notificationId.isNotEmpty &&
+                                      _deletingNotificationIds.contains(
+                                        notificationId,
+                                      ),
                                 );
                               },
                             ),

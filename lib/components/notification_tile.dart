@@ -22,24 +22,43 @@ class NotificationTileData {
 class NotificationTile extends StatelessWidget {
   final NotificationTileData notification;
   final VoidCallback? onTap;
+  final VoidCallback? onDelete;
+  final bool isDeleting;
 
   const NotificationTile({
     super.key,
     required this.notification,
     this.onTap,
+    this.onDelete,
+    this.isDeleting = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isUnread = notification.isUnread;
+    final cardColor = isUnread ? Colors.white : const Color(0xFFF3F4F6);
+    final borderColor = isUnread
+        ? AppColors.borderColor
+        : const Color(0xFFE5E7EB);
+    final titleColor = isUnread
+        ? const Color(0xFF111827)
+        : const Color(0xFF6B7280);
+    final messageColor = isUnread
+        ? AppColors.textSecondary
+        : const Color(0xFF9CA3AF);
+    final timeColor = isUnread
+        ? Colors.blueGrey.withValues(alpha: 0.7)
+        : const Color(0xFF9CA3AF);
+
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: cardColor,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.borderColor),
+          border: Border.all(color: borderColor),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,7 +66,9 @@ class NotificationTile extends StatelessWidget {
             Container(
               height: 2,
               decoration: BoxDecoration(
-                color: notification.iconBackground,
+                color: isUnread
+                    ? notification.iconBackground
+                    : notification.iconBackground.withValues(alpha: 0.35),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(12),
                   topRight: Radius.circular(12),
@@ -63,12 +84,16 @@ class NotificationTile extends StatelessWidget {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: notification.iconBackground.withValues(alpha: 0.1),
+                      color: notification.iconBackground.withValues(
+                        alpha: isUnread ? 0.1 : 0.07,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       notification.icon,
-                      color: notification.iconBackground,
+                      color: isUnread
+                          ? notification.iconBackground
+                          : notification.iconBackground.withValues(alpha: 0.7),
                       size: 18,
                     ),
                   ),
@@ -82,10 +107,12 @@ class NotificationTile extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 notification.title,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
+                                style: TextStyle(
+                                  fontWeight: isUnread
+                                      ? FontWeight.w600
+                                      : FontWeight.w500,
                                   fontSize: 13,
-                                  color: Color(0xFF111827),
+                                  color: titleColor,
                                 ),
                               ),
                             ),
@@ -98,14 +125,45 @@ class NotificationTile extends StatelessWidget {
                                   shape: BoxShape.circle,
                                 ),
                               ),
+                            if (onDelete != null)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8),
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: isDeleting
+                                      ? Padding(
+                                          padding: const EdgeInsets.all(4),
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                  AppColors.error,
+                                                ),
+                                          ),
+                                        )
+                                      : IconButton(
+                                          onPressed: onDelete,
+                                          tooltip: 'Delete notification',
+                                          icon: Icon(
+                                            Icons.delete_outline_rounded,
+                                            size: 16,
+                                            color: AppColors.error,
+                                          ),
+                                          padding: EdgeInsets.zero,
+                                          splashRadius: 16,
+                                          constraints: const BoxConstraints(),
+                                        ),
+                                ),
+                              ),
                           ],
                         ),
                         const SizedBox(height: 4),
                         Text(
                           notification.message,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.textSecondary,
+                            color: messageColor,
                             height: 1.4,
                           ),
                           maxLines: 2,
@@ -116,8 +174,10 @@ class NotificationTile extends StatelessWidget {
                           notification.timeLabel,
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.blueGrey.withValues(alpha: 0.7),
-                            fontWeight: FontWeight.w500,
+                            color: timeColor,
+                            fontWeight: isUnread
+                                ? FontWeight.w500
+                                : FontWeight.w400,
                           ),
                         ),
                       ],

@@ -4,6 +4,9 @@ class AppNotification {
   final DateTime? time;
   final String eventType;
   final String? helperId;
+  final String? userId;
+  final bool isRead;
+  final bool isDeleted;
 
   const AppNotification({
     this.id,
@@ -11,6 +14,9 @@ class AppNotification {
     required this.time,
     required this.eventType,
     this.helperId,
+    this.userId,
+    this.isRead = false,
+    this.isDeleted = false,
   });
 
   factory AppNotification.fromJson(Map<String, dynamic> json) {
@@ -20,6 +26,31 @@ class AppNotification {
       time: _parseBackendDateTime(json['time']),
       eventType: (json['type'] ?? json['eventType'] ?? '').toString(),
       helperId: json['helperId']?.toString(),
+      userId: json['userId']?.toString(),
+      isRead: _parseBool(json['isRead'] ?? json['read']),
+      isDeleted: _parseBool(json['isDeleted'] ?? json['deleted']),
+    );
+  }
+
+  AppNotification copyWith({
+    String? id,
+    String? message,
+    DateTime? time,
+    String? eventType,
+    String? helperId,
+    String? userId,
+    bool? isRead,
+    bool? isDeleted,
+  }) {
+    return AppNotification(
+      id: id ?? this.id,
+      message: message ?? this.message,
+      time: time ?? this.time,
+      eventType: eventType ?? this.eventType,
+      helperId: helperId ?? this.helperId,
+      userId: userId ?? this.userId,
+      isRead: isRead ?? this.isRead,
+      isDeleted: isDeleted ?? this.isDeleted,
     );
   }
 
@@ -67,5 +98,13 @@ class AppNotification {
   static int? _toInt(dynamic value) {
     if (value is int) return value;
     return int.tryParse(value.toString());
+  }
+
+  static bool _parseBool(dynamic value) {
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+
+    final normalized = value?.toString().trim().toLowerCase();
+    return normalized == 'true' || normalized == '1';
   }
 }
