@@ -13,6 +13,7 @@ import 'package:managementt/controller/task_controller.dart';
 import 'package:managementt/controller/user_task_controller.dart';
 import 'package:managementt/login_page.dart';
 import 'package:managementt/members/user_wrapper.dart';
+import 'package:managementt/service/update_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -67,8 +68,22 @@ class MyApp extends StatelessWidget {
 /// Shown at startup. Waits for [AuthController] to restore the session from
 /// secure storage, then renders the correct screen reactively — no
 /// Get.offAll needed (the navigator may not be ready during onInit).
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      UpdateService.checkForUpdate(context);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,15 +100,13 @@ class SplashScreen extends StatelessWidget {
         return LoginPage();
       }
 
-      // Session restored — render the correct dashboard directly.
+      // Session restored — render correct dashboard.
       if (auth.role.value == 'ADMIN') {
         return AdminWrapper();
+      } else if (auth.role.value == 'USER') {
+        return UserWrapper();
       } else {
-        if (auth.role.value == 'USER') {
-          return UserWrapper();
-        } else {
-          return LoginPage();
-        }
+        return LoginPage();
       }
     });
   }
